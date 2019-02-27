@@ -90,6 +90,15 @@ stages:
       path: eve/workers/openstack-single-node
     steps:
       - ShellCommand:
+          name: Report VM network settings
+          command: ip a
+      - ShellCommand:
+          name: Create ssh directory
+          command: mkdir -p ~/.ssh
+      - ShellCommand:
+          name: Push platform team keys
+          command: echo "%(secret:ssh_pub_keys)s" >> ~/.ssh/authorized_keys
+      - ShellCommand:
           name: Retrieve ISO image
           command: >
             curl -XGET -o metalk8s.iso

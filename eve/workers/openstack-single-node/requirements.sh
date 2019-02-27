@@ -2,6 +2,7 @@
 
 PACKAGES=(
     curl
+    iproute
 )
 
 yum install -y "${PACKAGES[@]}"
