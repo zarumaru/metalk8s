@@ -125,6 +125,9 @@ stages:
             /srv/scality/metalk8s-%(prop:metalk8s_short_version)s
           haltOnFailure: true
       - ShellCommand:
+          name: Sleep before bootstrap for debug
+          command: sleep 15m
+      - ShellCommand:
           name: Start the bootstrap process
           command: >
             sudo bash
