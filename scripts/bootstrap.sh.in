@@ -70,6 +70,9 @@ pillar_roots:
 # use new module.run format
 use_superseded:
   - module.run
+
+log_level: debug
+log_level_logfile: debug
 EOF
 }
 
