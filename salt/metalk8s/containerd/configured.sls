@@ -6,12 +6,33 @@
 include:
   - .installed
 
-Start and enable containerd:
-  service.running:
-    - name: containerd
-    - enable: True
+Add strace to debug containerd service:
+  pkg.installed:
+    - name: strace
+
+# Override some unit parameters for containerd service:
+#   file.managed:
+#     - name: /etc/systemd/system/containerd.service.d/overrides.conf
+#     - source: salt://metalk8s/containerd/files/overrides.conf
+#     - user: root
+#     - group: root
+#     - mode: 644
+#     - makedirs: true
+#     - dir_mode: 750
+
+Run containerd with strace:
+  cmd.run:
+    - name: /bin/strace -t -f -o /root/test.trace "systemd-run systemctl start containerd"
     - require:
+      - pkg: Add strace to debug containerd service
       - pkg: Install containerd
+
+# Start and enable containerd:
+#   service.running:
+#     - name: containerd
+#     - enable: True
+#     - require:
+#       - pkg: Install containerd
 
 Inject pause image:
   # The `containerd` states require the `cri` module, which requires `crictl`

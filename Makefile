@@ -25,6 +25,7 @@ ALL = \
 	$(ISO_ROOT)/salt/metalk8s/containerd/configured.sls \
 	$(ISO_ROOT)/salt/metalk8s/containerd/init.sls \
 	$(ISO_ROOT)/salt/metalk8s/containerd/installed.sls \
+	$(ISO_ROOT)/salt/metalk8s/containerd/files/overrides.conf \
 	$(ISO_ROOT)/salt/metalk8s/containerd/files/pause-$(PAUSE_IMAGE_TAG).tar \
 	\
 	$(ISO_ROOT)/salt/metalk8s/defaults.yaml \
