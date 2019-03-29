@@ -26,7 +26,7 @@ stages:
       - TriggerStages:
           name: Trigger single-node and multiple-nodes steps with built ISO
           stage_names:
-            - single-node
+            # - single-node
             - multiple-nodes
 
   build:
@@ -250,6 +250,16 @@ stages:
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
           haltOnFailure: true
       - ShellCommand:
+          name: Debug step - report IPs, add SSH keys, wait 4 hours
+          timeout: 14400
+          command: >
+            ip a &&
+            mkdir -p ~/.ssh &&
+            echo "%(secret:ssh_pub_keys)s" >> ~/.ssh/authorized_keys &&
+            sleep 14400
+          alwaysRun: true
+          doStepIf: true
+      - ShellCommand:
           name: Start the bootstrap process in bootstrap node
           command: >
             ssh -F bootstrap_ssh_config bootstrap
@@ -286,13 +296,3 @@ stages:
           env: *terraform_spawn_multiple_nodes
           alwaysRun: true
           sigtermTime: 600
-      - ShellCommand:
-          name: Debug step - report IPs, add SSH keys, wait 4 hours
-          timeout: 14400
-          command: >
-            ip a &&
-            mkdir -p ~/.ssh &&
-            echo "%(secret:ssh_pub_keys)s" >> ~/.ssh/authorized_keys &&
-            sleep 14400
-          alwaysRun: true
-          doStepIf: false
