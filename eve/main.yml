@@ -205,8 +205,7 @@ stages:
       - ShellCommand:
           name: Configure SSH config for bootstrap node
           command: >
-            sed -i s/IP_ADDRESS/$(terraform output bootstrap_ip)/
-            bootstrap_ssh_config
+            sed -i s/IP_ADDRESS/%(prop:bootstrap_ip)s/ bootstrap_ssh_config
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
           haltOnFailure: true
       - ShellCommand:
@@ -250,16 +249,6 @@ stages:
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
           haltOnFailure: true
       - ShellCommand:
-          name: Debug step - report IPs, add SSH keys, wait 4 hours
-          timeout: 14400
-          command: >
-            ip a &&
-            mkdir -p ~/.ssh &&
-            echo "%(secret:ssh_pub_keys)s" >> ~/.ssh/authorized_keys &&
-            sleep 14400
-          alwaysRun: true
-          doStepIf: true
-      - ShellCommand:
           name: Start the bootstrap process in bootstrap node
           command: >
             ssh -F bootstrap_ssh_config bootstrap
@@ -267,6 +256,22 @@ stages:
             /srv/scality/metalk8s-%(prop:metalk8s_short_version)s/bootstrap.sh
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
           haltOnFailure: true
+      - ShellCommand:
+          name: Set-up IP-to-IP tunnel on worker side
+          command: >
+            sudo bash setup-ipip-tunnel.sh
+            --remote-ip %(prop:bootstrap_ip)s
+            --local-ip $(ip -4 a s eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+            --eve-worker
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
+      - ShellCommand:
+          name: Set-up IP-to-IP tunnel on bootstrap side
+          command: >
+            ssh -F bootstrap_ssh_config bootstrap
+            sudo bash /home/centos/setup-ipip-tunnel.sh
+            --remote-ip $(ip -4 a s eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+            --local-ip %(prop:bootstrap_ip)s
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
       - ShellCommand:
           name: Install kubectl on the boostrap node
           command: >
@@ -282,10 +287,18 @@ stages:
             ISO_MOUNTPOINT: >-
               /srv/scality/metalk8s-%(prop:metalk8s_short_version)s
             TEST_HOSTS_LIST: bootstrap
-          command: >
-            tox -e tests --
-            --bootstrap-ip=%(prop:bootstrap_ip)s --skip-tls-verify
+          command: tox -e tests
           haltOnFailure: true
+      - ShellCommand:
+          name: Debug step - report IPs, add SSH keys, wait 4 hours
+          timeout: 14400
+          command: >
+            ip a &&
+            mkdir -p ~/.ssh &&
+            echo "%(secret:ssh_pub_keys)s" >> ~/.ssh/authorized_keys &&
+            sleep 14400
+          alwaysRun: true
+          doStepIf: true
       - ShellCommand:
           name: Destroy openstack virtual infra
           command: |-
