@@ -3,23 +3,43 @@ resource "openstack_compute_instance_v2" "bootstrap" {
   image_name  = "${var.openstack_image_name}"
   flavor_name = "${var.openstack_flavour_name}"
   key_pair    = "${openstack_compute_keypair_v2.local_ssh_key.name}"
-  security_groups = ["${openstack_networking_secgroup_v2.nodes.name}"]
+  security_groups = [
+    "${openstack_networking_secgroup_v2.nodes.name}",
+    "${openstack_networking_secgroup_v2.nodes_internal.name}"
+  ]
 
   network = ["${var.openstack_network}"]
 
+  # Private networks
   network {
-    name = "${openstack_networking_network_v2.internal.name}"
+    name = "${openstack_networking_network_v2.control_plane.name}"
+  }
+  network {
+    name = "${openstack_networking_network_v2.workload_plane.name}"
+  }
+  # We need the subnets to be created before attempting to reach the DHCP server
+  depends_on = [
+    "openstack_networking_subnet_v2.control_plane_subnet",
+    "openstack_networking_subnet_v2.workload_plane_subnet",
+  ]
+
+  connection {
+    user     = "centos"
+    private_key = "${file("~/.ssh/terraform")}"
   }
 
+  # Obtain IP addresses for both private networks
   provisioner "remote-exec" {
     inline = [
       "sudo chattr +i /etc/resolv.conf &&",
-      "sudo dhclient eth1"
+      "sudo dhclient eth1 eth2"
     ]
-    connection {
-      user     = "centos"
-      private_key = "${file("/home/eve/.ssh/terraform")}"
-    }
+  }
+
+  # Copy the IP-IP tunnel setup script only on the bootstrap node
+  provisioner "file" {
+    source      = "setup-ipip-tunnel.sh"
+    destination = "/home/centos/setup-ipip-tunnel.sh"
   }
 }
 
@@ -37,22 +57,35 @@ resource "openstack_compute_instance_v2" "nodes" {
   image_name  = "${var.openstack_image_name}"
   flavor_name = "${var.openstack_flavour_name}"
   key_pair    = "${openstack_compute_keypair_v2.local_ssh_key.name}"
-  security_groups = ["${openstack_networking_secgroup_v2.nodes.name}"]
+  security_groups = [
+    "${openstack_networking_secgroup_v2.nodes.name}",
+    "${openstack_networking_secgroup_v2.nodes_internal.name}"
+  ]
 
   network = ["${var.openstack_network}"]
 
+  # Private networks
   network {
-    name = "${openstack_networking_network_v2.internal.name}"
+    name = "${openstack_networking_network_v2.control_plane.name}"
   }
+  network {
+    name = "${openstack_networking_network_v2.workload_plane.name}"
+  }
+  # We need the subnets to be created before attempting to reach the DHCP server
+  depends_on = [
+    "openstack_networking_subnet_v2.control_plane_subnet",
+    "openstack_networking_subnet_v2.workload_plane_subnet",
+  ]
 
+  # Obtain IP addresses for both private networks
   provisioner "remote-exec" {
     inline = [
       "sudo chattr +i /etc/resolv.conf &&",
-      "sudo dhclient eth1"
+      "sudo dhclient eth1 eth2"
     ]
     connection {
       user     = "centos"
-      private_key = "${file("/home/eve/.ssh/terraform")}"
+      private_key = "${file("~/.ssh/terraform")}"
     }
   }
 
