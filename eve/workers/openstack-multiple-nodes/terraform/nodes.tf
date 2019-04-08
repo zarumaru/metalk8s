@@ -31,8 +31,9 @@ resource "openstack_compute_instance_v2" "bootstrap" {
   # Obtain IP addresses for both private networks
   provisioner "remote-exec" {
     inline = [
-      "sudo chattr +i /etc/resolv.conf &&",
-      "sudo dhclient eth1 eth2"
+      "sudo chattr +i /etc/resolv.conf",
+      "sudo dhclient -r -v eth1 eth2",
+      "sudo dhclient -v eth1 eth2",
     ]
   }
 
@@ -80,8 +81,9 @@ resource "openstack_compute_instance_v2" "nodes" {
   # Obtain IP addresses for both private networks
   provisioner "remote-exec" {
     inline = [
-      "sudo chattr +i /etc/resolv.conf &&",
-      "sudo dhclient eth1 eth2"
+      "sudo chattr +i /etc/resolv.conf",
+      "sudo dhclient -r -v eth1 eth2",
+      "sudo dhclient -v eth1 eth2",
     ]
     connection {
       user     = "centos"
