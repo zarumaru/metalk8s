@@ -1,3 +1,7 @@
+terraform {
+  required_version = ">= 0.12.0"
+}
+
 variable "worker_uuid" {
   type    = "string"
   default = ""

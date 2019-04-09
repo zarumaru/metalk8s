@@ -16,7 +16,7 @@ yum clean all
 
 sudo -u eve pip3.6 install --user tox
 
-TERRAFORM_VERSION=0.11.13
+TERRAFORM_VERSION=0.12.0-beta1
 
 curl -O https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/sbin/
