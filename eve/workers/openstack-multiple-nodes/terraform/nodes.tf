@@ -41,10 +41,6 @@ resource "openstack_compute_instance_v2" "router" {
   }
 }
 
-output "router_ip" {
-  value = "${openstack_compute_instance_v2.router.network.0.fixed_ip_v4}"
-}
-
 resource "openstack_compute_instance_v2" "bootstrap" {
   name        = "${local.prefix}-bootstrap"
   image_name  = "${var.openstack_image_name}"
@@ -82,10 +78,6 @@ resource "openstack_compute_instance_v2" "bootstrap" {
     ]
   }
 
-}
-
-output "bootstrap_ip" {
-  value = "${openstack_compute_instance_v2.bootstrap.network.0.fixed_ip_v4}"
 }
 
 variable "nodes_count" {
@@ -131,4 +123,12 @@ resource "openstack_compute_instance_v2" "nodes" {
   }
 
   count = "${var.nodes_count}"
+}
+
+output "ips" {
+  value = {
+    bootstrap = "${openstack_compute_instance_v2.bootstrap.network.0.fixed_ip_v4}"
+    router = "${openstack_compute_instance_v2.router.network.0.fixed_ip_v4}"
+    nodes = ["${openstack_compute_instance_v2.nodes.*.network.0.fixed_ip_v4}"]
+  }
 }
