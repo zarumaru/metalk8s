@@ -102,7 +102,7 @@ resource "openstack_compute_instance_v2" "nodes" {
     "${local.workload_plane_network}",
   ]
 
-    # We need the subnets to be created before attempting to reach the DHCP server
+  # We need the subnets to be created before attempting to reach the DHCP server
   depends_on = [
     "openstack_networking_subnet_v2.control_plane_subnet",
     "openstack_networking_subnet_v2.workload_plane_subnet",
@@ -129,6 +129,9 @@ output "ips" {
   value = {
     bootstrap = "${openstack_compute_instance_v2.bootstrap.network.0.fixed_ip_v4}"
     router = "${openstack_compute_instance_v2.router.network.0.fixed_ip_v4}"
-    nodes = ["${openstack_compute_instance_v2.nodes.*.network.0.fixed_ip_v4}"]
+
+    # FIXME: this syntax does not work (but will in v0.12)
+    # see https://github.com/hashicorp/terraform/issues/17048
+    # nodes = ["${openstack_compute_instance_v2.nodes.*.network.0.fixed_ip_v4}"]
   }
 }
