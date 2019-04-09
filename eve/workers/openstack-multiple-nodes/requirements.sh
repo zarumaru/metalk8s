@@ -7,6 +7,7 @@ PACKAGES=(
     git
     python36-pip
     unzip
+    jq  # Used to parse 'terraform output -json'
 )
 
 yum install -y "${PACKAGES[@]}"
