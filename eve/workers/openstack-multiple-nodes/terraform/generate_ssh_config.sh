@@ -60,6 +60,7 @@ EOF
 print_host_config router "$(get_ip router)" > "$SSH_CONFIG_FILE"
 print_host_config bootstrap "$(get_ip bootstrap)" >> "$SSH_CONFIG_FILE"
 
-for idx in `seq 1 $NODES_COUNT`; do
-    print_host_config "node$idx" "$(get_ip nodes "$(expr $idx - 1)")" >> "$SSH_CONFIG_FILE"
-done
+# FIXME: this needs Terraform v0.12 to work (see ./nodes.tf)
+# for idx in `seq 1 $NODES_COUNT`; do
+#     print_host_config "node$idx" "$(get_ip nodes "$(expr $idx - 1)")" >> "$SSH_CONFIG_FILE"
+# done
