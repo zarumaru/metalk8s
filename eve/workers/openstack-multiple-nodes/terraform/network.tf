@@ -48,6 +48,15 @@ resource "openstack_networking_subnet_v2" "workload_plane_subnet" {
   no_gateway = true
 }
 
+locals {
+  control_plane_network = {
+    name = "${openstack_networking_network_v2.control_plane.name}"
+  }
+  workload_plane_network = {
+    name = "${openstack_networking_network_v2.workload_plane.name}"
+  }
+}
+
 
 # Security groups
 

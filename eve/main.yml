@@ -199,14 +199,15 @@ stages:
             TF_VAR_nodes_count: "2"
           haltOnFailure: true
       - SetPropertyFromCommand:
-          name: Save spawned bootstrap IP
+          name: Save spawned router IP
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
-          property: bootstrap_ip
-          command: terraform output bootstrap_ip
+          property: router_ip
+          command: terraform output router_ip
       - ShellCommand:
           name: Configure SSH config for bootstrap node
           command: >
-            sed -i s/IP_ADDRESS/%(prop:bootstrap_ip)s/ bootstrap_ssh_config
+            sed -i s/IP_ADDRESS/$(terraform output bootstrap_ip)/
+            bootstrap_ssh_config
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
           haltOnFailure: true
       - ShellCommand:
@@ -261,17 +262,17 @@ stages:
           name: Set-up IP-to-IP tunnel on worker side
           command: >
             sudo bash setup-ipip-tunnel.sh
-            --remote-ip %(prop:bootstrap_ip)s
+            --remote-ip %(prop:router_ip)s
             --local-ip $(ip -4 a s eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
             --eve-worker
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
       - ShellCommand:
           name: Set-up IP-to-IP tunnel on bootstrap side
           command: >
-            ssh -F bootstrap_ssh_config bootstrap
+            ssh -i /home/eve/.ssh/terraform %(prop:router_ip)s
             sudo bash /home/centos/setup-ipip-tunnel.sh
             --remote-ip $(ip -4 a s eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
-            --local-ip %(prop:bootstrap_ip)s
+            --local-ip %(prop:router_ip)s
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
       - ShellCommand:
           name: Install kubectl on the boostrap node
