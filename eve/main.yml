@@ -10,24 +10,28 @@ stages:
     worker:
       type: local
     steps:
-      - TriggerStages:
-          name: Trigger build and lint stages simultaneously
-          stage_names:
-            - build
-            - lint
-          haltOnFailure: true
-      - SetPropertyFromCommand:
-          name: Set short version as property from built artifacts
-          property: metalk8s_short_version
-          command: >
-            bash -c '
-            . <(curl -s "%(prop:artifacts_private_url)s/product.txt") &&
-            echo $SHORT_VERSION'
-      - TriggerStages:
-          name: Trigger single-node and multiple-nodes steps with built ISO
-          stage_names:
-            # - single-node
-            - multiple-nodes
+        - ShellCommand:
+            name: Debug
+            command: echo debug
+            doStepIf: "%(prop:debug_toggle)s"
+      # - TriggerStages:
+      #     name: Trigger build and lint stages simultaneously
+      #     stage_names:
+      #       - build
+      #       - lint
+      #     haltOnFailure: true
+      # - SetPropertyFromCommand:
+      #     name: Set short version as property from built artifacts
+      #     property: metalk8s_short_version
+      #     command: >
+      #       bash -c '
+      #       . <(curl -s "%(prop:artifacts_private_url)s/product.txt") &&
+      #       echo $SHORT_VERSION'
+      # - TriggerStages:
+      #     name: Trigger single-node and multiple-nodes steps with built ISO
+      #     stage_names:
+      #       # - single-node
+      #       - multiple-nodes
 
   build:
     worker:
