@@ -1,48 +1,5 @@
-resource "openstack_compute_instance_v2" "router" {
-  name        = "${local.prefix}-router"
-  image_name  = "${var.openstack_image_name}"
-  flavor_name = "m1.small"
-  key_pair    = "${openstack_compute_keypair_v2.local_ssh_key.name}"
-
-  security_groups = [
-    "${openstack_networking_secgroup_v2.nodes.name}",
-    "${openstack_networking_secgroup_v2.nodes_internal.name}"
-  ]
-
-  network = [
-    "${var.openstack_network}",
-    "${local.control_plane_network}",
-    "${local.workload_plane_network}",
-  ]
-
-    # We need the subnets to be created before attempting to reach the DHCP server
-  depends_on = [
-    "openstack_networking_subnet_v2.control_plane_subnet",
-    "openstack_networking_subnet_v2.workload_plane_subnet",
-  ]
-
-  connection {
-    user        = "centos"
-    private_key = "${file("~/.ssh/terraform")}"
-  }
-
-  # Obtain IP addresses for both private networks
-  provisioner "remote-exec" {
-    inline = [
-      "sudo chattr +i /etc/resolv.conf",
-      "sudo dhclient -r eth1 eth2",  # Release first
-      "sudo dhclient eth1 eth2",  # Then request new IPs
-    ]
-  }
-
-  provisioner "file" {
-    source      = "setup-ipip-tunnel.sh"
-    destination = "/home/centos/setup-ipip-tunnel.sh"
-  }
-}
-
-resource "openstack_compute_instance_v2" "bootstrap" {
-  name        = "${local.prefix}-bootstrap"
+resource "openstack_compute_instance_v2" "bastion" {
+  name        = "${local.prefix}-bastion"
   image_name  = "${var.openstack_image_name}"
   flavor_name = "${var.openstack_flavour_name}"
   key_pair    = "${openstack_compute_keypair_v2.local_ssh_key.name}"
@@ -78,6 +35,73 @@ resource "openstack_compute_instance_v2" "bootstrap" {
     ]
   }
 
+  # Generate Bastion SSH keypair
+  provisioner "remote-exec" {
+    inline = [
+      "ssh-keygen -t rsa -b 4096 -N '' -f /home/centos/.ssh/bastion"
+    ]
+  }
+
+  # Retrieve Bastion public key
+  # provisioner "local-exec" {
+  #   command = "scp -i ~/.ssh/terraform centos@${self.network.0.fixed_ip_v4}:.ssh/bastion.pub ./bastion.pub"
+  # }
+
+  # Install basic dependencies for running end-to-end tests
+  provisioner "remote-exec" {
+    inline = [
+      "sudo yum install -y epel-release",
+      "sudo yum install -y python36-pip",
+      "sudo pip3.6 install tox",
+    ]
+  }
+}
+
+resource "openstack_compute_instance_v2" "bootstrap" {
+  name        = "${local.prefix}-bootstrap"
+  image_name  = "${var.openstack_image_name}"
+  flavor_name = "${var.openstack_flavour_name}"
+  key_pair    = "${openstack_compute_keypair_v2.local_ssh_key.name}"
+
+  security_groups = [
+    "${openstack_networking_secgroup_v2.nodes.name}",
+    "${openstack_networking_secgroup_v2.nodes_internal.name}"
+  ]
+
+  network = [
+    "${var.openstack_network}",
+    "${local.control_plane_network}",
+    "${local.workload_plane_network}",
+  ]
+
+  depends_on = [
+    # We need the subnets before attempting to reach their DHCP servers
+    "openstack_networking_subnet_v2.control_plane_subnet",
+    "openstack_networking_subnet_v2.workload_plane_subnet",
+    # We need the Bastion's public key
+    # "openstack_compute_instance_v2.bastion",
+  ]
+
+  connection {
+    user        = "centos"
+    private_key = "${file("~/.ssh/terraform")}"
+  }
+
+  # Obtain IP addresses for both private networks
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chattr +i /etc/resolv.conf",
+      "sudo dhclient -r eth1 eth2",  # Release first
+      "sudo dhclient eth1 eth2",  # Then request new IPs
+    ]
+  }
+
+  # Authorize Bastion's public key
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "cat ${file("bastion.pub")} >> .ssh/authorized_keys"
+  #   ]
+  # }
 }
 
 variable "nodes_count" {
@@ -122,16 +146,40 @@ resource "openstack_compute_instance_v2" "nodes" {
     ]
   }
 
+  # Authorize Bastion's public key
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "cat ${file("bastion.pub")} >> .ssh/authorized_keys"
+  #   ]
+  # }
+
   count = "${var.nodes_count}"
 }
 
+locals {
+  bastion_ip   = "${openstack_compute_instance_v2.bastion.network.0.fixed_ip_v4}"
+  bootstrap_ip = "${openstack_compute_instance_v2.bootstrap.network.0.fixed_ip_v4}"
+
+  # FIXME: this syntax does not work (but will in v0.12)
+  # see https://github.com/hashicorp/terraform/issues/17048
+  # nodes = ["${openstack_compute_instance_v2.nodes.*.network.0.fixed_ip_v4}"]
+}
+
+locals {
+  all_instances = "${concat(
+    "${list(
+      "${openstack_compute_instance_v2.bastion.id}",
+      "${openstack_compute_instance_v2.bootstrap.id}"
+    )}",
+    "${openstack_compute_instance_v2.nodes.*.id}"
+  )}"
+}
+
+
+
 output "ips" {
   value = {
-    bootstrap = "${openstack_compute_instance_v2.bootstrap.network.0.fixed_ip_v4}"
-    router = "${openstack_compute_instance_v2.router.network.0.fixed_ip_v4}"
-
-    # FIXME: this syntax does not work (but will in v0.12)
-    # see https://github.com/hashicorp/terraform/issues/17048
-    # nodes = ["${openstack_compute_instance_v2.nodes.*.network.0.fixed_ip_v4}"]
+    bastion   = "${local.bastion_ip}"
+    bootstrap = "${local.bootstrap_ip}"
   }
 }

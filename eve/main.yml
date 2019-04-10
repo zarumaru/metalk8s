@@ -199,19 +199,27 @@ stages:
             TF_VAR_nodes_count: "2"
           haltOnFailure: true
       - ShellCommand:
-          name: Generate SSH config from Terraform state
-          command: bash generate-ssh-config.sh
-          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
-          haltOnFailure: true
-      - ShellCommand:
           name: Check SSH config for bootstrap node
           command: |-
+            if [ ! -f ssh_config ]; then
+              echo "Missing SSH config file" >&2
+              exit 1
+            fi
             for _ in $(seq 1 12); do
               sleep 5
               ssh -F ssh_config bootstrap id && break
             done;
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
           haltOnFailure: true
+      - ShellCommand:
+          # FIXME: find a way to share bastion public key to all spawned
+          # instances from Terraform
+          name: Send bastion public key to bootstrap
+          command: >
+            scp -F ssh_config -3 bastion:.ssh/bastion.pub bootstrap:.ssh/ &&
+            ssh -F ssh_config bootstrap
+            "cat .ssh/bastion.pub >> .ssh/authorized_keys"
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
       - ShellCommand:
           name: Copy ISO to bootstrap node
           command: >
@@ -252,22 +260,6 @@ stages:
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
           haltOnFailure: true
       - ShellCommand:
-          name: Set-up IP-to-IP tunnel on the worker
-          command: >
-            sudo bash setup-ipip-tunnel.sh
-            --remote-ip $(terraform output -json ips | jq -r .value.router)
-            --local-ip $(ip -4 a s eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
-            --eve-worker
-          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
-      - ShellCommand:
-          name: Set-up IP-to-IP tunnel on the router
-          command: >
-            ssh -F ssh_config router
-            sudo bash /home/centos/setup-ipip-tunnel.sh
-            --remote-ip $(ip -4 a s eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
-            --local-ip $(terraform output -json ips | jq -r .value.router)
-          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
-      - ShellCommand:
           name: Install kubectl on the boostrap node
           command: >
             ssh -F ssh_config bootstrap
@@ -275,14 +267,25 @@ stages:
             --enablerepo=metalk8s-kubernetes
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
       - ShellCommand:
-          name: Run tests on the bootstrap node
-          env:
-            SSH_CONFIG_FILE: >-
-              eve/workers/openstack-multiple-nodes/terraform/ssh_config
-            ISO_MOUNTPOINT: >-
-              /srv/scality/metalk8s-%(prop:metalk8s_short_version)s
-            TEST_HOSTS_LIST: bootstrap
-          command: tox -e tests
+          # FIXME: should find a cleaner way to do this (git clone may be
+          # cumbersome, unless we assume the repo is public and don't use
+          # authentication)
+          name: Copy test sources to the bastion
+          command: >
+            SSH_CFG=eve/workers/openstack-multiple-nodes/terraform/ssh_config &&
+            ssh -F $SSH_CFG bastion mkdir metalk8s &&
+            scp -F $SSH_CFG tox.ini bastion:metalk8s/ &&
+            scp -F $SSH_CFG -r tests bastion:metalk8s/
+      - ShellCommand:
+          name: Run tests on the bastion
+          command: >
+            ssh -F ssh_config bastion
+            "cd metalk8s &&
+            SSH_CONFIG_FILE=/home/centos/ssh_config
+            ISO_MOUNTPOINT=/srv/scality/metalk8s-%(prop:metalk8s_short_version)s
+            TEST_HOSTS_LIST=bootstrap
+            tox -e tests"
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
           haltOnFailure: true
       - ShellCommand:
           name: Debug step - report IPs, add SSH keys, wait 4 hours
