@@ -134,3 +134,4 @@ TODO
 .. _the terms introduced by CoreOS: https://coreos.com/blog/introducing-operators.html
 .. _the Solutions deployment diagram definition: ./deployment.uml
 .. _Solution archive guidelines: ./archive.rst
+.. _Solution Operator guidelines: ./operator.rst
