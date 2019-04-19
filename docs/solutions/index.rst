@@ -25,6 +25,52 @@ appropriate ``CustomResource(s)`` defined by the Solution Operator, using
 either the Solution UI or the Kubernetes API, to effectively deploy one or more
 instances of the application packaged in the Solution.
 
+How is a *Solution* declared in MetalK8s?
+-----------------------------------------
+
+MetalK8s already uses a ``BootstrapConfiguration`` object, stored in
+``/etc/metalk8s/bootstrap.yaml``, to define how the cluster should be
+configured from the bootstrap node, and what versions of MetalK8s are available
+to the cluster.
+
+In the same vein, we want to use a ``SolutionsConfiguration`` object, stored in
+``/etc/metalk8s/solutions.yaml``, to declare which Solutions are available to
+the cluster, from the bootstrap node.
+
+Here is how it could look::
+
+    apiVersion: metalk8s.scality.com/v1alpha1
+    kind: SolutionsConfiguration
+    solutions:
+      - name: my-storage
+        archives:
+          - /solutions/storage_1.0.0.iso
+          - /solutions/storage_latest.iso
+      - name: my-computing
+        archives:
+          - /other_solutions/computing.iso
+
+There would be no explicit version information about what the archives
+contain. Instead, we want the archive itself to contain such information (more
+details in the `Solution archive guidelines`_), and to discover it ourselves.
+
+A ``SolutionsConfiguration`` as defined above would be sufficient for deploying
+both ``my-storage`` and ``my-computing`` Solutions ; we would simply choose to
+deploy the latest, in SemVer terms, available version among the declared
+``archives``.
+In order to declare which version to actually deploy, one can use the
+``activeVersion`` field, as so::
+
+    [...]
+    solutions:
+      - name: my-storage
+        archives:
+          - ...
+        activeVersion: 1.0.1
+
+If the ``activeVersion`` declared is not available among the declared
+``archives``, attempting to deploy the Solution will fail.
+
 Responsibilities of each party
 ------------------------------
 
@@ -87,3 +133,4 @@ TODO
 
 .. _the terms introduced by CoreOS: https://coreos.com/blog/introducing-operators.html
 .. _the Solutions deployment diagram definition: ./deployment.uml
+.. _Solution archive guidelines: ./archive.rst
