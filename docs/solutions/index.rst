@@ -16,9 +16,15 @@ We use the term *Solution* to describe a packaged Kubernetes application,
 archived as an ISO disk image, containing:
 
 - A set of OCI images to inject in MetalK8s image registry
-- An Operator, in `the terms introduced by CoreOS`_, to deploy on the cluster
+- An `Operator`_, to deploy on the cluster
 - Optionally, a UI for managing and monitoring the application, represented by
   a standard Kubernetes ``Deployment``
+
+For more details, see the following documentation pages:
+
+- `Solution archive guidelines`_
+- `Solution Operator guidelines`_
+- (TODO) Solution UI guidelines
 
 Once a Solution is deployed on MetalK8s, a user can start creating the
 appropriate ``CustomResource(s)`` defined by the Solution Operator, using

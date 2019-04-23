@@ -1,41 +1,25 @@
-MetalK8s documentation
-======================
+.. spelling::
 
-.. image:: ../artwork/generated/metalk8s-logo-wide-black-400.png
-    :width: 250px
-    :alt: MetalK8s logo
-
-An opinionated Kubernetes distribution with a focus on long-term on-prem
-deployments.
-
-Deployment
-----------
-
-TODO: include short summary, and link to relevant docs page
-
-See the UML diagram defined at ``docs/deployment.uml`` (can be generated as
-PNG/SVG files, through the use of ``make`` from the ``docs/`` directory).
-
-Upgrade
--------
-
-TODO: summary, links, diagram
+   prem
 
 
-Monitoring
-----------
+Welcome to MetalK8s's documentation!
+====================================
 
-TODO: summary, links, diagram(s)
+.. include:: introduction.rst
 
-Integration
------------
+.. note: Keep this in sync with the toctree in `index-latex.rst`...
 
-TODO: include short summary of the topic
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
 
-See the relevant documentation chapter: `Integration with MetalK8s`_
+   solutions/index
 
 
+Indices and tables
+==================
 
-.. References
-
-.. _Integration with MetalK8s: ./solutions/index.rst
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

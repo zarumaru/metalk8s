@@ -1,0 +1,4 @@
+Solution Operator guidelines
+============================
+
+TODO
