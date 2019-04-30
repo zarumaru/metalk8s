@@ -2,8 +2,11 @@ import pathlib
 
 import kubernetes
 import pytest
-from pytest_bdd import given, then
+from pytest_bdd import given, parsers, then
 import yaml
+
+from tests import kube_utils
+from tests import utils
 
 
 # Pytest command-line options
@@ -27,6 +30,7 @@ def short_version(request, host):
         return host.check_output(
             'source %s && echo $SHORT_VERSION', str(product_path)
         )
+
 
 @pytest.fixture(scope="module")
 def hostname(host):
@@ -107,6 +111,19 @@ def check_service(host):
 @then("the Kubernetes API is available")
 def verify_kubeapi_service(host):
     _verify_kubeapi_service(host)
+
+
+@then(parsers.parse(
+    "we have {pods_count:d} running pod labeled '{label}' on node '{node}'"
+))
+def count_running_pods(k8s_client, pods_count, label, node):
+    def _check_pods_count():
+        pods = kube_utils.get_pods(
+            k8s_client, label, node, namespace="kube-system", state="Running",
+        )
+        assert len(pods) == pods_count
+
+    utils.retry(_check_pods_count, times=10, wait=3)
 
 
 # }}}
