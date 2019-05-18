@@ -39,7 +39,31 @@ def hostname(host):
     The hostname registered in the SSH config file may not match the one known
     by the server, especially if running tests locally.
     """
-    return host.check_output('hostname')
+    return host.check_output("hostname")
+
+
+@pytest.fixture(scope="module")
+def bootstrap_config(host):
+    with host.sudo():
+        config_file = host.file("/etc/metalk8s/bootstrap.yaml")
+        if not config_file.exists:
+            pytest.skip("Must be run on bootstrap node")
+        return yaml.safe_load(config_file.content_string)
+
+
+@pytest.fixture(scope="module")
+def control_plane_ip(host, bootstrap_config):
+    cidr = bootstrap_config["networks"]["controlPlane"]
+    ip = utils.get_ip_from_cidr(host, cidr)
+
+    if ip is None:
+        pytest.fail(
+            "Could not find a control-plane IP for '{}'".format(
+                host.get_hostname()
+            )
+        )
+
+    return ip
 
 
 @pytest.fixture(scope="module")

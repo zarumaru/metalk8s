@@ -7,6 +7,8 @@ import testinfra
 import kubernetes as k8s
 import yaml
 
+from tests import utils
+
 
 # Scenarios
 @scenario('../features/expansion.feature',
@@ -65,14 +67,15 @@ def check_etcd_role(k8s_client, node_name):
 # }}}
 # Helpers {{{
 
-def get_node_ip(hostname, ssh_config):
+def get_node_ip(hostname, ssh_config, bootstrap_config):
     """Return the IP of the node `hostname`.
 
     We have to jump through hoops because `testinfra` does not provide a simple
     way to get this information…
     """
     infra_node = testinfra.get_host(hostname, ssh_config=ssh_config)
-    return infra_node.backend.client.get_transport().getpeername()[0]
+    control_plane_cidr = bootstrap_config['networks']['controlPlane']
+    return utils.get_ip_from_cidr(infra_node, control_plane_cidr)
 
 
 def get_node_manifest(node_type, metalk8s_version, node_ip):
