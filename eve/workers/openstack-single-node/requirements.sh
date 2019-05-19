@@ -8,7 +8,7 @@ PACKAGES=(
     git
     python36-pip
     xorg-x11-server-Xvfb
-    gtk2
+    gtk3
     libXtst*
     libXScrnSaver*
     GConf2*
