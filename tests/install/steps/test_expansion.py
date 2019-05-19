@@ -31,15 +31,15 @@ def declare_node(
 
 
 @when(parsers.parse('we deploy the node "{name}"'))
-def deploy_node(version, k8s_client, name):
+def deploy_node(short_version, k8s_client, name):
     accept_ssh_key = [
-        'salt-ssh', '-i', name, 'test.ping', '--roster=kubernetes'
+        'salt-ssh', name, 'test.ping', '--roster=kubernetes'
     ]
-    pillar = {'bootstrap_id': 'bootstrap', 'node_name': name}
+    pillar = {'orchestrate': {'node_name': name}}
     deploy = [
-        'salt-run', 'state.orch', 'metalk8s.orchestrate.deploy_new_node',
-        'saltenv=metalk8s-{}'.format(version),
-        'pillar={}'.format(json.dumps(pillar))
+        'salt-run', 'state.orchestrate', 'metalk8s.orchestrate.deploy_node',
+        'saltenv=metalk8s-{}'.format(short_version),
+        "pillar='{}'".format(json.dumps(pillar))
     ]
     run_salt_command(k8s_client, accept_ssh_key)
     run_salt_command(k8s_client, deploy)
