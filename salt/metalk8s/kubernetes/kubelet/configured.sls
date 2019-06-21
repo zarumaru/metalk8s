@@ -36,6 +36,7 @@ Configure kubelet service:
     - context:
         env_file: "/var/lib/kubelet/kubeadm-flags.env"
         config_file: "/var/lib/kubelet/config.yaml"
+        hostname: {{ grains['id'] }}
     - require:
       - pkg: Install kubelet
       - metalk8s_kubeconfig: Create kubeconfig file for kubelet
