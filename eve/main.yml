@@ -228,7 +228,7 @@ stages:
           name: Debug step - wait 1 hour before allowing resource destruction
           timeout: 3600
           command: sleep 3600
-          doStepIf: false
+          doStepIf: true
           alwaysRun: true
 
   multiple-nodes:
@@ -374,7 +374,7 @@ stages:
           timeout: 14400
           command: sleep 14400
           alwaysRun: true
-          doStepIf: false
+          doStepIf: true
       - ShellCommand:
           name: Destroy openstack virtual infra
           command: |-
