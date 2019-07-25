@@ -87,7 +87,7 @@ def task__download_packages() -> types.TaskDict:
                 continue
             coreutils.rm_rf(repository.rootdir)
 
-    pkg_list = constants.ROOT/'packages/packages.list'
+    pkg_list = constants.ROOT/'packages/redhat/packages.list'
     packages = _load_package_list(pkg_list)
 
     mounts = [
@@ -136,13 +136,13 @@ def task__build_repositories() -> Iterator[types.TaskDict]:
 BUILDER : targets.LocalImage = targets.LocalImage(
     name='metalk8s-build',
     version='latest',
-    dockerfile=constants.ROOT/'packages'/'Dockerfile',
+    dockerfile=constants.ROOT/'packages'/'redhat'/'Dockerfile',
     destination=config.BUILD_ROOT,
     save_on_disk=False,
     task_dep=['_build_root'],
     file_dep=[
-        constants.ROOT/'packages/yum_repositories/kubernetes.repo',
-        constants.ROOT/'packages/yum_repositories/saltstack.repo'
+        constants.ROOT/'packages/redhat/yum_repositories/kubernetes.repo',
+        constants.ROOT/'packages/redhat/yum_repositories/saltstack.repo'
     ],
 )
 

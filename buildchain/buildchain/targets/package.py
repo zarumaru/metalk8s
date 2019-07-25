@@ -106,7 +106,7 @@ class Package(base.CompositeTarget):
     @property
     def spec(self) -> Path:
         """.spec file path."""
-        return constants.ROOT/'packages'/'{}.spec'.format(self.name)
+        return constants.ROOT/'packages'/'redhat'/'{}.spec'.format(self.name)
 
     @property
     def meta(self) -> Path:
