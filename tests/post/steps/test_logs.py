@@ -1,4 +1,4 @@
-import re
+import time
 
 from pytest_bdd import scenario, then
 
@@ -22,8 +22,9 @@ SKIP_CONTAINERS = frozenset((
 @then("all Pod logs should be non-empty")
 def check_logs(k8s_client):
     all_pods = k8s_client.list_pod_for_all_namespaces()
-    
+
     for pod in all_pods.items:
+        pod = _wait_for_pod(k8s_client, pod)
         pod_name = pod.metadata.name
         namespace = pod.metadata.namespace
 
@@ -40,3 +41,17 @@ def check_logs(k8s_client):
             assert logs.strip(), (
                 "Couldn't find logs for container '{}' in Pod '{}' (status {})"
             ).format(container.name, pod_name, pod.status.phase)
+
+
+def _wait_for_pod(client, pod, max_retries=10):
+    retries = 0
+
+    while pod.status.phase != 'Running' and retries <= max_retries:
+        time.sleep(2)
+        pod = client.read_namespaced_pod(
+            name=pod.metadata.name,
+            namespace=pod.metadata.namespace,
+        )
+        retries += 1
+
+    return pod
