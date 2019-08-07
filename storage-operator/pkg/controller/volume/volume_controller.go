@@ -391,6 +391,10 @@ func (self *ReconcileVolume) removeVolumeFinalizer(
 func (self *ReconcileVolume) getDiskSizeForVolume(
 	ctx context.Context, volume *storagev1alpha1.Volume,
 ) (resource.Quantity, error) {
+	if volume.Spec.SparseLoopDevice != nil {
+		return volume.Spec.SparseLoopDevice.Size, nil
+	}
+
 	nodeName := string(volume.Spec.NodeName)
 	size, err := self.salt.GetVolumeSize(ctx, nodeName, volume.GetPath())
 	if err != nil {

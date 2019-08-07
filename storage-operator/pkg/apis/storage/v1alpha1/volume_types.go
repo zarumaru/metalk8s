@@ -178,6 +178,9 @@ func (self *Volume) IsInUnrecoverableFailedState() bool {
 
 // Return the volume path on the node.
 func (self *Volume) GetPath() string {
+	if self.Spec.RawBlockDevice != nil {
+		return self.Spec.RawBlockDevice.DevicePath
+	}
 	return fmt.Sprintf("/dev/disk/by-uuid/%s", self.UID)
 }
 
