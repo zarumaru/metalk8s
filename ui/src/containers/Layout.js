@@ -8,6 +8,7 @@ import { withRouter, Switch } from 'react-router-dom';
 
 import NodeCreateForm from './NodeCreateForm';
 import NodeList from './NodeList';
+import SolutionList from './SolutionList';
 import NodeInformation from './NodeInformation';
 import NodeDeployment from './NodeDeployment';
 import ClusterMonitoring from './ClusterMonitoring';
@@ -65,6 +66,18 @@ class Layout extends Component {
           },
           active: matchPath(this.props.history.location.pathname, {
             path: '/nodes',
+            exact: false,
+            strict: true
+          })
+        },
+        {
+          label: this.props.intl.messages.solutions,
+          icon: <i className="fas fa-th" />,
+          onClick: () => {
+            this.props.history.push('/solutions');
+          },
+          active: matchPath(this.props.history.location.pathname, {
+            path: '/solutions',
             exact: false,
             strict: true
           })
@@ -139,6 +152,7 @@ class Layout extends Component {
             <PrivateRoute path="/nodes/:id" component={NodeInformation} />
 
             <PrivateRoute exact path="/nodes" component={NodeList} />
+            <PrivateRoute exact path="/solutions" component={SolutionList} />
             <PrivateRoute exact path="/about" component={About} />
             <PrivateRoute exact path="/" component={ClusterMonitoring} />
           </Switch>

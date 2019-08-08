@@ -118,3 +118,19 @@ export async function getPersistentVolumeClaims() {
     return { error };
   }
 }
+
+export async function getConfigMapForAllNamespaces() {
+  try {
+    return await coreV1.listConfigMapForAllNamespaces();
+  } catch (error) {
+    return { error };
+  }
+}
+
+export async function getServiceForAllNamespaces() {
+  try {
+    return await coreV1.listServiceForAllNamespaces();
+  } catch (error) {
+    return { error };
+  }
+}
