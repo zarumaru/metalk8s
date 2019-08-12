@@ -1,6 +1,6 @@
 resource "openstack_compute_servergroup_v2" "all" {
   name     = "${local.prefix}-servergroup"
-  policies = []
+  policies = ["soft-affinity"]
 }
 
 resource "openstack_compute_instance_v2" "bastion" {
