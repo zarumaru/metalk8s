@@ -447,7 +447,7 @@ stages:
           timeout: 14400
           command: sleep 14400
           alwaysRun: true
-          doStepIf: false
+          doStepIf: true
       - ShellCommand:
           name: Destroy openstack virtual infra
           command: |-
