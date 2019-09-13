@@ -1,0 +1,26 @@
+# $ kubectl apply -f prometheus-sparse.yaml
+# $ kubectl get pv -w
+# # Wait for PVs to show up
+# $ kubectl label pv bootstrap-alertmanager app.kubernetes.io/name=prometheus-operator-alertmanager
+# $ kubectl label pv bootstrap-prometheus app.kubernetes.io/name=prometheus-operator-prometheus
+---
+apiVersion: storage.metalk8s.scality.com/v1alpha1
+kind: Volume
+metadata:
+  name: bootstrap-prometheus
+spec:
+  nodeName: bootstrap
+  storageClassName: metalk8s-prometheus
+  sparseLoopDevice:
+    size: 10Gi
+---
+apiVersion: storage.metalk8s.scality.com/v1alpha1
+kind: Volume
+metadata:
+  name: bootstrap-alertmanager
+spec:
+  nodeName: bootstrap
+  storageClassName: metalk8s-prometheus
+  sparseLoopDevice:
+    size: 1Gi
+---
