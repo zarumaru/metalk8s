@@ -145,16 +145,23 @@ CREATE_VOLUMES = <<-SCRIPT
 
 set -eu -o pipefail
 
+source /vagrant/_build/root/product.txt
+
+if ! test -f "/srv/scality/metalk8s-$VERSION/examples/prometheus-sparse.yaml"; then
+    echo 1>&2 "Storage provisioning template not found."
+    exit 1
+fi
+
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
 echo "Creating storage volumes"
-sed 's/BOOTSTRAP_NODE_NAME/bootstrap/' /vagrant/examples/storage/prometheus-sparse.yaml | \
+sed 's/BOOTSTRAP_NODE_NAME/bootstrap/' /srv/scality/metalk8s-$VERSION/examples/prometheus-sparse.yaml | \
     kubectl apply -f -
 
 OK=0
 echo "Waiting for PV 'bootstrap-alertmanager' to be provisioned"
-for _ in seq 1 60; do
-    if kubectl get pv bootstrap-alertmanager > /dev/null; then
+for _ in $(seq 1 60); do
+    if kubectl get pv bootstrap-alertmanager > /dev/null 2>&1; then
         OK=1
         break
     fi
@@ -164,8 +171,8 @@ done
 
 OK=0
 echo "Waiting for PV 'bootstrap-prometheus' to be provisioned"
-for _ in seq 1 60; do
-    if kubectl get pv bootstrap-prometheus > /dev/null; then
+for _ in $(seq 1 60); do
+    if kubectl get pv bootstrap-prometheus > /dev/null 2>&1; then
         OK=1
         break
     fi
@@ -175,7 +182,7 @@ done
 
 OK=0
 echo 'Waiting for AlertManager to be running'
-for _ in seq 1 60; do
+for _ in $(seq 1 60); do
     PHASE=$(kubectl -n metalk8s-monitoring get pod alertmanager-prometheus-operator-alertmanager-0 -o jsonpath="{.status.phase}")
     if [ ${PHASE} = "Running" ]; then
         OK=1
@@ -187,7 +194,7 @@ done
 
 OK=0
 echo 'Waiting for Prometheus to be running'
-for _ in seq 1 60; do
+for _ in $(seq 1 60); do
     PHASE=$(kubectl -n metalk8s-monitoring get pod prometheus-prometheus-operator-prometheus-0 -o jsonpath="{.status.phase}")
     if [ ${PHASE} = "Running" ]; then
         OK=1
