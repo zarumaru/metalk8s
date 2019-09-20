@@ -293,8 +293,8 @@ stages:
           name: Provision Prometheus and AlertManager storage
           command: >
             sudo env
-            PRODUCT_TXT=/var/tmp/metalk8s/product.txt
-            PRODUCT_MOUNT=/var/tmp/metalk8s
+            PRODUCT_TXT=/srv/scality/metalk8s-%(prop:metalk8s_version)s/product.txt
+            PRODUCT_MOUNT=/srv/scality/metalk8s-%(prop:metalk8s_version)s
             eve/create-volumes.sh
           haltOnFailure: true
       - ShellCommand:
