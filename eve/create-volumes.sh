@@ -8,7 +8,8 @@ set -eu -o pipefail
 BOOTSTRAP_NODE_NAME=${BOOTSTRAP_NODE_NAME:-bootstrap}
 PRODUCT_TXT=${PRODUCT_TXT:-/vagrant/_build/root/product.txt}
 
-source ${PRODUCT_TXT}
+# shellcheck disable=SC1090
+source "${PRODUCT_TXT}"
 
 PRODUCT_MOUNT=${PRODUCT_MOUNT:-/srv/scality/metalk8s-${VERSION}}
 
@@ -21,7 +22,7 @@ KUBECONFIG=${KUBECONFIG:-/etc/kubernetes/admin.conf}
 export KUBECONFIG
 
 echo "Creating storage volumes"
-sed "s/BOOTSTRAP_NODE_NAME/${BOOTSTRAP_NODE_NAME}/" ${PRODUCT_MOUNT}/examples/prometheus-sparse.yaml | \
+sed "s/BOOTSTRAP_NODE_NAME/${BOOTSTRAP_NODE_NAME}/" "${PRODUCT_MOUNT}/examples/prometheus-sparse.yaml" | \
     kubectl apply -f -
 
 OK=0
@@ -50,7 +51,7 @@ OK=0
 echo 'Waiting for AlertManager to be running'
 for _ in $(seq 1 60); do
     PHASE=$(kubectl -n metalk8s-monitoring get pod alertmanager-prometheus-operator-alertmanager-0 -o jsonpath="{.status.phase}")
-    if [ ${PHASE} = "Running" ]; then
+    if [ "x${PHASE}" = "xRunning" ]; then
         OK=1
         break
     fi
@@ -62,7 +63,7 @@ OK=0
 echo 'Waiting for Prometheus to be running'
 for _ in $(seq 1 60); do
     PHASE=$(kubectl -n metalk8s-monitoring get pod prometheus-prometheus-operator-prometheus-0 -o jsonpath="{.status.phase}")
-    if [ ${PHASE} = "Running" ]; then
+    if [ "x${PHASE}" = "xRunning" ]; then
         OK=1
         break
     fi
