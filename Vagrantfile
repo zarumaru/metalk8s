@@ -140,7 +140,7 @@ echo "Launching bootstrap"
 exec "/srv/scality/metalk8s-$VERSION/bootstrap.sh"
 SCRIPT
 
-CREATE_VOLUMES = File.read("eve/create-volumes.sh")
+CREATE_VOLUMES = File.read(__dir__ + "/eve/create-volumes.sh")
 
 DEPLOY_SSH_PUBLIC_KEY = <<-SCRIPT
 #!/bin/bash

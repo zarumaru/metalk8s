@@ -5,7 +5,7 @@
 
 set -eu -o pipefail
 
-BOOTSTRAP_NODE_NAME=${BOOTSTRAP_NODE_NAME:-bootstrap}
+BOOTSTRAP_NODE_NAME=${BOOTSTRAP_NODE_NAME:-$(hostname)}
 PRODUCT_TXT=${PRODUCT_TXT:-/vagrant/_build/root/product.txt}
 
 # shellcheck disable=SC1090
