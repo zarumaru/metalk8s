@@ -292,7 +292,11 @@ stages:
       - ShellCommand:
           name: Provision Prometheus and AlertManager storage
           command: >
-            sudo bash eve/create-volumes.sh
+            sudo
+                BOOTSTRAP_NODE_NAME=\$(hostname)
+                PRODUCT_TXT=/var/tmp/metalk8s/product.txt
+                PRODUCT_MOUNT=/var/tmp/metalk8s
+                bash eve/create-volumes.sh
           haltOnFailure: true
       - ShellCommand:
           name: Install kubectl for running tests
