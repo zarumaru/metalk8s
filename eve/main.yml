@@ -292,9 +292,9 @@ stages:
       - ShellCommand:
           name: Provision Prometheus and AlertManager storage
           command: >
-            sudo env
-                PRODUCT_TXT=/var/tmp/metalk8s/product.txt
-                PRODUCT_MOUNT=/var/tmp/metalk8s
+            sudo env \
+                PRODUCT_TXT=/var/tmp/metalk8s/product.txt \
+                PRODUCT_MOUNT=/var/tmp/metalk8s \
                 eve/create-volumes.sh
           haltOnFailure: true
       - ShellCommand:
@@ -460,12 +460,12 @@ stages:
             SSH_CONFIG: >-
               eve/workers/openstack-multiple-nodes/terraform/ssh_config
           command: >
-            scp -F $SSH_CONFIG eve/create-volumes.sh bootstrap:./create-volumes.sh &&
+            scp -F $SSH_CONFIG eve/create-volumes.sh bootstrap:/tmp/create-volumes.sh &&
             ssh -F $SSH_CONFIG bootstrap
-                sudo env
-                PRODUCT_TXT=/var/tmp/metalk8s/product.txt
-                PRODUCT_MOUNT=/var/tmp/metalk8s
-                ./create-volumes.sh
+                sudo env \
+                PRODUCT_TXT=/var/tmp/metalk8s/product.txt \
+                PRODUCT_MOUNT=/var/tmp/metalk8s \
+                /tmp/create-volumes.sh
           haltOnFailure: true
       - ShellCommand:
           name: Install kubectl on the boostrap node
