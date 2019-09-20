@@ -1,26 +1,32 @@
-# $ kubectl apply -f prometheus-sparse.yaml
-# $ kubectl get pv -w
-# # Wait for PVs to show up
-# $ kubectl label pv bootstrap-alertmanager app.kubernetes.io/name=prometheus-operator-alertmanager
-# $ kubectl label pv bootstrap-prometheus app.kubernetes.io/name=prometheus-operator-prometheus
+# This file contains manifests to create `sparseLoopDevice` volumes for
+# Prometheus and AlertManager to be deployed.
+# Make sure to change the `nodeName` to the node name of your bootstrap node.
 ---
 apiVersion: storage.metalk8s.scality.com/v1alpha1
 kind: Volume
 metadata:
   name: bootstrap-prometheus
 spec:
-  nodeName: bootstrap
+  nodeName: BOOTSTRAP_NODE_NAME
   storageClassName: metalk8s-prometheus
   sparseLoopDevice:
     size: 10Gi
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: 'prometheus-operator-prometheus'
 ---
 apiVersion: storage.metalk8s.scality.com/v1alpha1
 kind: Volume
 metadata:
   name: bootstrap-alertmanager
 spec:
-  nodeName: bootstrap
+  nodeName: BOOTSTRAP_NODE_NAME
   storageClassName: metalk8s-prometheus
   sparseLoopDevice:
     size: 1Gi
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: 'prometheus-operator-alertmanager'
 ---
