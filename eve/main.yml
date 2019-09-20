@@ -458,7 +458,11 @@ stages:
               eve/workers/openstack-multiple-nodes/terraform/ssh_config
           command: >
             scp -F $SSH_CONFIG eve/create-volumes.sh:./create-volumes.sh &&
-            ssh -F $SSH_CONFIG bootstrap sudo bash ./create-volumes.sh
+            ssh -F $SSH_CONFIG bootstrap sudo
+                BOOTSTRAP_NODE_NAME=\$(hostname)
+                PRODUCT_TXT=/var/tmp/metalk8s/product.txt
+                PRODUCT_MOUNT=/var/tmp/metalk8s
+                bash -x ./create-volumes.sh
           haltOnFailure: true
       - ShellCommand:
           name: Install kubectl on the boostrap node
