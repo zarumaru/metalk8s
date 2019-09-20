@@ -140,6 +140,64 @@ echo "Launching bootstrap"
 exec "/srv/scality/metalk8s-$VERSION/bootstrap.sh"
 SCRIPT
 
+CREATE_VOLUMES = <<-SCRIPT
+#!/bin/bash
+
+set -eu -o pipefail
+
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
+echo "Creating storage volumes"
+sed 's/BOOTSTRAP_NODE_NAME/bootstrap/' /vagrant/examples/storage/prometheus-sparse.yaml | \
+    kubectl apply -f -
+
+OK=0
+echo "Waiting for PV 'bootstrap-alertmanager' to be provisioned"
+for _ in seq 1 60; do
+    if kubectl get pv bootstrap-alertmanager > /dev/null; then
+        OK=1
+        break
+    fi
+    sleep 1
+done
+[ $OK -eq 1 ] || (echo "PV not created"; false)
+
+OK=0
+echo "Waiting for PV 'bootstrap-prometheus' to be provisioned"
+for _ in seq 1 60; do
+    if kubectl get pv bootstrap-prometheus > /dev/null; then
+        OK=1
+        break
+    fi
+    sleep 1
+done
+[ $OK -eq 1 ] || (echo "PV not created"; false)
+
+OK=0
+echo 'Waiting for AlertManager to be running'
+for _ in seq 1 60; do
+    PHASE=$(kubectl -n metalk8s-monitoring get pod alertmanager-prometheus-operator-alertmanager-0 -o jsonpath="{.status.phase}")
+    if [ ${PHASE} = "Running" ]; then
+        OK=1
+        break
+    fi
+    sleep 1
+done
+[ $OK -eq 1 ] || (echo "AlertManager not Running"; false)
+
+OK=0
+echo 'Waiting for Prometheus to be running'
+for _ in seq 1 60; do
+    PHASE=$(kubectl -n metalk8s-monitoring get pod prometheus-prometheus-operator-prometheus-0 -o jsonpath="{.status.phase}")
+    if [ ${PHASE} = "Running" ]; then
+        OK=1
+        break
+    fi
+    sleep 1
+done
+[ $OK -eq 1 ] || (echo "Prometheus not Running"; false)
+SCRIPT
+
 DEPLOY_SSH_PUBLIC_KEY = <<-SCRIPT
 #!/bin/bash
 
@@ -192,6 +250,10 @@ Vagrant.configure("2") do |config|
     bootstrap.vm.provision "bootstrap",
       type: "shell",
       inline: BOOTSTRAP
+
+    bootstrap.vm.provision "create-volumes",
+      type: "shell",
+      inline: CREATE_VOLUMES
   end
 
   os_data = {
