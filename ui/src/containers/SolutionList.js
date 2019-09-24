@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import { injectIntl } from 'react-intl';
-import { Table, Button } from '@scality/core-ui';
+import { Table, Button, Breadcrumb } from '@scality/core-ui';
 import { padding } from '@scality/core-ui/dist/style/theme';
+
 import { sortSelector } from '../services/utils';
 import NoRowsRenderer from '../components/NoRowsRenderer';
+import {
+  BreadcrumbContainer,
+  BreadcrumbLabel,
+  StyledLink,
+} from '../components/BreadcrumbStyle';
 
 const PageContainer = styled.div`
   box-sizing: border-box;
@@ -29,6 +35,8 @@ const VersionLabel = styled.label`
 const SolutionsList = props => {
   const [sortBy, setSortBy] = useState('name');
   const [sortDirection, setSortDirection] = useState('ASC');
+  const theme = useSelector(state => state.config.theme);
+
   const { intl, solutions } = props;
   const solutionColumns = [
     {
@@ -124,6 +132,16 @@ const SolutionsList = props => {
 
   return (
     <PageContainer>
+      <BreadcrumbContainer>
+        <Breadcrumb
+          activeColor={theme.brand.secondary}
+          paths={[
+            <BreadcrumbLabel title={intl.messages.solutions}>
+              {intl.messages.solutions}
+            </BreadcrumbLabel>,
+          ]}
+        />
+      </BreadcrumbContainer>
       <TableContainer>
         <PageSubtitle>Stacks</PageSubtitle>
         <Table
