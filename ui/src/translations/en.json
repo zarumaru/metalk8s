@@ -95,6 +95,7 @@
   "storage_class_is_required": "A storage class is required in order to create a volume. Please create one in Kubernetes.",
   "learn_more": "Learn more",
   "solutions": "Solutions",
+  "available_solutions": "Available Solutions",
   "versions": "Versions",
   "deployed_version": "Deployed Version",
   "action": "Action",

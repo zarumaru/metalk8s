@@ -15,6 +15,7 @@ export const SET_THEME = 'SET_THEME';
 export const SET_SOLUTIONS = 'SET_SOLUTIONS';
 export const SET_SOLUTIONS_REFRESHING = 'SET_SOLUTIONS_REFRESHING';
 export const SET_SERVICES = 'SET_SERVICES';
+export const SET_STACK = 'SET_STACK';
 
 const REFRESH_SOLUTIONS = 'REFRESH_SOLUTIONS';
 const STOP_REFRESH_SOLUTIONS = 'STOP_REFRESH_SOLUTIONS';
@@ -35,7 +36,8 @@ const defaultState = {
   api: null,
   solutions: [],
   services: [],
-  isSolutionsRefreshing: false
+  stacks: [],
+  isSolutionsRefreshing: false,
 };
 
 export default function reducer(state = defaultState, action = {}) {
@@ -50,6 +52,8 @@ export default function reducer(state = defaultState, action = {}) {
       return { ...state, solutions: action.payload };
     case SET_SERVICES:
       return { ...state, services: action.payload };
+    case SET_STACK:
+      return { ...state, stacks: action.payload };
     case SET_SOLUTIONS_REFRESHING:
       return { ...state, isSolutionsRefreshing: action.payload };
     default:
@@ -98,6 +102,10 @@ export function updateLanguageAction(language) {
   return { type: UPDATE_LANGUAGE, payload: language };
 }
 
+export const setStacksAction = stacks => {
+  return { type: SET_STACK, payload: stacks };
+};
+
 export const refreshSolutionsAction = () => {
   return { type: REFRESH_SOLUTIONS };
 };
@@ -136,7 +144,9 @@ export function* setInitialLanguage() {
       : yield put(setLanguageAction(EN_LANG));
   } else {
     yield put(
-      setLanguageAction(navigator.language.startsWith('fr') ? FR_LANG : EN_LANG)
+      setLanguageAction(
+        navigator.language.startsWith('fr') ? FR_LANG : EN_LANG,
+      ),
     );
   }
 }
@@ -163,7 +173,7 @@ export function* fetchSolutions() {
       const solutions = Object.keys(solutionsConfigMap.data).map(key => {
         return {
           name: key,
-          versions: JSON.parse(solutionsConfigMap.data[key])
+          versions: JSON.parse(solutionsConfigMap.data[key]),
         };
       });
       const services = yield select(state => state.config.services);
@@ -176,7 +186,7 @@ export function* fetchSolutions() {
                 service.metadata.labels[APP_K8S_PART_OF_SOLUTION_LABEL] ===
                   sol.name &&
                 service.metadata.labels[APP_K8S_VERSION_LABEL] ===
-                  version.version
+                  version.version,
             );
             version.ui_url = sol_service
               ? `http://localhost:${sol_service.spec.ports[0].nodePort}` // TO BE IMPROVED: we can not get the Solution UI's IP so far
@@ -190,16 +200,29 @@ export function* fetchSolutions() {
   return result;
 }
 
+export function* fetchStacks() {
+  const result = yield call(ApiK8s.getStacks);
+  if (!result.error) {
+    yield put(setStacksAction(result?.body?.items ?? []));
+  }
+  return result;
+}
+
 export function* refreshSolutions() {
   yield put(setSolutionsRefeshingAction(true));
 
   const resultFetchUIServices = yield call(fetchUIServices);
   const resultFetchSolutions = yield call(fetchSolutions);
+  const resultFetchStacks = yield call(fetchStacks);
 
-  if (!resultFetchSolutions.error && !resultFetchUIServices.error) {
+  if (
+    !resultFetchSolutions.error &&
+    !resultFetchUIServices.error &&
+    !resultFetchStacks.error
+  ) {
     yield delay(REFRESH_TIMEOUT);
     const isRefreshing = yield select(
-      state => state.config.isSolutionsRefreshing
+      state => state.config.isSolutionsRefreshing,
     );
     if (isRefreshing) {
       yield call(refreshSolutions);
