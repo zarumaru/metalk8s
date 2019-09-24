@@ -25,7 +25,7 @@ import VolumeInformation from './VolumeInformation';
 import { useRefreshEffect } from '../services/utils';
 import {
   refreshSolutionsAction,
-  stopRefreshSolutionsAction
+  stopRefreshSolutionsAction,
 } from '../ducks/config';
 import { fetchClusterVersionAction } from '../ducks/app/nodes';
 
@@ -41,13 +41,13 @@ const Layout = props => {
       label: props.intl.messages.about,
       onClick: () => {
         props.history.push('/about');
-      }
-    }
+      },
+    },
   ];
 
   const user = {
     name: props.user && props.user.username,
-    actions: [{ label: props.intl.messages.log_out, onClick: props.logout }]
+    actions: [{ label: props.intl.messages.log_out, onClick: props.logout }],
   };
 
   const sidebar = {
@@ -62,8 +62,8 @@ const Layout = props => {
         active: matchPath(props.history.location.pathname, {
           path: '/',
           exact: true,
-          strict: true
-        })
+          strict: true,
+        }),
       },
       {
         label: props.intl.messages.nodes,
@@ -74,38 +74,37 @@ const Layout = props => {
         active: matchPath(props.history.location.pathname, {
           path: '/nodes',
           exact: false,
-          strict: true
-        })
-      }
-    ]
+          strict: true,
+        }),
+      },
+      {
+        label: props.intl.messages.solutions,
+        icon: <i className="fas fa-th" />,
+        onClick: () => {
+          props.history.push('/solutions');
+        },
+        active: matchPath(props.history.location.pathname, {
+          path: '/solutions',
+          exact: false,
+          strict: true,
+        }),
+      },
+    ],
   };
 
   let applications = null;
   if (props?.solutions?.length) {
     applications = props?.solutions?.reduce((prev, solution) => {
       let solutionDeployedVersions = solution?.versions?.filter(
-        version => version?.deployed && version?.ui_url
+        version => version?.deployed && version?.ui_url,
       );
       let app = solutionDeployedVersions.map(version => ({
         label: solution.name,
         // TO BE IMPROVED in core-ui to allow display Link or <a></a>
-        onClick: () => window.open(version.ui_url, '_self')
+        onClick: () => window.open(version.ui_url, '_self'),
       }));
       return [...prev, ...app];
     }, []);
-
-    sidebar.actions.push({
-      label: props.intl.messages.solutions,
-      icon: <i className="fas fa-th" />,
-      onClick: () => {
-        props.history.push('/solutions');
-      },
-      active: matchPath(props.history.location.pathname, {
-        path: '/solutions',
-        exact: false,
-        strict: true
-      })
-    });
   }
 
   // In this particular case, the label should not be translated
@@ -117,7 +116,7 @@ const Layout = props => {
         props.updateLanguage(FR_LANG);
       },
       selected: props.language === FR_LANG,
-      'data-cy': FR_LANG
+      'data-cy': FR_LANG,
     },
     {
       label: 'English',
@@ -126,8 +125,8 @@ const Layout = props => {
         props.updateLanguage(EN_LANG);
       },
       selected: props.language === EN_LANG,
-      'data-cy': EN_LANG
-    }
+      'data-cy': EN_LANG,
+    },
   ];
 
   const navbar = {
@@ -143,7 +142,7 @@ const Layout = props => {
         alt="logo"
         src={process.env.PUBLIC_URL + '/brand/assets/branding.svg'}
       />
-    )
+    ),
   };
 
   return (
@@ -186,7 +185,7 @@ const mapStateToProps = state => ({
   theme: state.config.theme,
   notifications: state.app.notifications.list,
   language: state.config.language,
-  solutions: state.config.solutions
+  solutions: state.config.solutions,
 });
 
 const mapDispatchToProps = dispatch => {
@@ -195,7 +194,7 @@ const mapDispatchToProps = dispatch => {
     removeNotification: uid => dispatch(removeNotificationAction(uid)),
     updateLanguage: language => dispatch(updateLanguageAction(language)),
     toggleSidebar: () => dispatch(toggleSideBarAction()),
-    fetchClusterVersion: () => dispatch(fetchClusterVersionAction())
+    fetchClusterVersion: () => dispatch(fetchClusterVersionAction()),
   };
 };
 
@@ -203,7 +202,7 @@ export default injectIntl(
   withRouter(
     connect(
       mapStateToProps,
-      mapDispatchToProps
-    )(Layout)
-  )
+      mapDispatchToProps,
+    )(Layout),
+  ),
 );
