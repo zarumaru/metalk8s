@@ -198,8 +198,8 @@ const SolutionsList = props => {
 
 function mapStateToProps(state) {
   return {
-    solutions: state.config.solutions,
-    stacks: state.config.stacks,
+    solutions: state.app.solutions.solutions,
+    stacks: state.app.solutions.stacks,
   };
 }
 

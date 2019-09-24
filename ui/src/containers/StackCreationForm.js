@@ -13,7 +13,7 @@ import {
   BreadcrumbLabel,
   StyledLink,
 } from '../components/BreadcrumbStyle';
-import { callbackify } from 'util';
+import { createStackAction } from '../ducks/app/solutions';
 
 const StackCreationFormContainer = styled.div`
   display: inline-block;
@@ -73,6 +73,7 @@ const FormSection = styled.div`
 
 const StackCreationForm = props => {
   const { intl } = props;
+  const dispatch = useDispatch();
   const theme = useSelector(state => state.config.theme);
 
   const initialValues = {
@@ -81,7 +82,7 @@ const StackCreationForm = props => {
   };
 
   const validationSchema = {
-    name: yup.string(),
+    name: yup.string().required(),
     description: yup.string(),
   };
 
@@ -101,32 +102,27 @@ const StackCreationForm = props => {
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={values => {
-            // const newVolume = { ...values };
-            // newVolume.size = `${values.sizeInput}${values.selectedUnit}`;
-            // props.createVolume(newVolume, nodeName);
+            dispatch(createStackAction(values));
           }}
         >
           {formikProps => {
-            const {
-              values,
-              handleChange,
-              errors,
-              touched,
-              setFieldTouched,
-              dirty,
-              setFieldValue,
-            } = formikProps;
+            const { handleChange, errors, dirty } = formikProps;
+
             return (
               <Form>
                 <FormSection>
                   <Input
-                    label={intl.messages.name}
                     name="name"
-                    onChange={handleChange}
+                    label={intl.messages.name}
+                    onChange={handleChange('name')}
                   />
                   <TextAreaContainer>
                     <TextAreaLabel>{intl.messages.description}</TextAreaLabel>
-                    <TextArea name="description" rows="4" />
+                    <TextArea
+                      name="description"
+                      rows="4"
+                      onChange={handleChange}
+                    />
                   </TextAreaContainer>
                 </FormSection>
 

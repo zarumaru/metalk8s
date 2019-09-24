@@ -27,7 +27,7 @@ import { useRefreshEffect } from '../services/utils';
 import {
   refreshSolutionsAction,
   stopRefreshSolutionsAction,
-} from '../ducks/config';
+} from '../ducks/app/solutions';
 import { fetchClusterVersionAction } from '../ducks/app/nodes';
 
 const Layout = props => {
@@ -191,7 +191,7 @@ const mapStateToProps = state => ({
   theme: state.config.theme,
   notifications: state.app.notifications.list,
   language: state.config.language,
-  solutions: state.config.solutions,
+  solutions: state.app.solutions.solutions,
 });
 
 const mapDispatchToProps = dispatch => {

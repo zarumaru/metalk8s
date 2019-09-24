@@ -170,3 +170,17 @@ export async function getStacks() {
     return { error };
   }
 }
+
+export async function createStack(body) {
+  try {
+    console.log('hye');
+    return await customObjects.createClusterCustomObject(
+      'solutions.metalk8s.scality.com',
+      'v1alpha1',
+      'stacks',
+      body,
+    );
+  } catch (error) {
+    return { error };
+  }
+}
