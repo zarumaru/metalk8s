@@ -13,6 +13,7 @@ import {
   BreadcrumbLabel,
   StyledLink,
 } from '../components/BreadcrumbStyle';
+import { margin } from 'polished';
 
 const PageContainer = styled.div`
   box-sizing: border-box;
@@ -37,7 +38,7 @@ const SolutionsList = props => {
   const [sortDirection, setSortDirection] = useState('ASC');
   const theme = useSelector(state => state.config.theme);
 
-  const { intl, solutions } = props;
+  const { intl, history, solutions } = props;
   const solutionColumns = [
     {
       label: intl.messages.name,
@@ -71,7 +72,17 @@ const SolutionsList = props => {
   ];
 
   const ButtonContainer = styled.span`
-    margin-left: 10px;
+    margin-left: ${props => (props.marginLeft ? '10px' : '0')};
+  `;
+
+  const TableContainer = styled.div`
+    height: 30%;
+    margin: 0 0 50px 0;
+  `;
+
+  const StackHeader = styled.div`
+    display: flex;
+    justify-content: space-between;
   `;
 
   const stacksColumn = [
@@ -92,7 +103,7 @@ const SolutionsList = props => {
           <div>
             <span>
               {solutions.map((solution, idx) => (
-                <ButtonContainer key={`solution_${idx}`}>
+                <ButtonContainer key={`solution_${idx}`} marginLeft={idx !== 0}>
                   <Button
                     text={`${solution.name} ${solution.version}`}
                     size="smaller"
@@ -100,8 +111,11 @@ const SolutionsList = props => {
                 </ButtonContainer>
               ))}
             </span>
-            <ButtonContainer>
-              <Button text="+" size="smaller" />
+            <ButtonContainer marginLeft>
+              <Button
+                size="smaller"
+                icon={<i className="fas fa-plus" />}
+              ></Button>
             </ButtonContainer>
           </div>
         );
@@ -109,11 +123,6 @@ const SolutionsList = props => {
       flexGrow: 1,
     },
   ];
-
-  const TableContainer = styled.div`
-    height: 30%;
-    margin: 0 0 50px 0;
-  `;
 
   const onSort = ({ sortBy, sortDirection }) => {
     setSortBy(sortBy);
@@ -143,7 +152,15 @@ const SolutionsList = props => {
         />
       </BreadcrumbContainer>
       <TableContainer>
-        <PageSubtitle>Stacks</PageSubtitle>
+        <StackHeader>
+          <PageSubtitle>{intl.messages.create_new_stack}</PageSubtitle>
+          <Button
+            text={intl.messages.create_new_stack}
+            onClick={() => history.push('/nodes/create')}
+            icon={<i className="fas fa-plus" />}
+          />
+        </StackHeader>
+
         <Table
           list={formattedStack}
           columns={stacksColumn}
