@@ -11,9 +11,7 @@ import NoRowsRenderer from '../components/NoRowsRenderer';
 import {
   BreadcrumbContainer,
   BreadcrumbLabel,
-  StyledLink,
 } from '../components/BreadcrumbStyle';
-import { margin } from 'polished';
 
 const PageContainer = styled.div`
   box-sizing: border-box;
@@ -156,7 +154,7 @@ const SolutionsList = props => {
           <PageSubtitle>{intl.messages.create_new_stack}</PageSubtitle>
           <Button
             text={intl.messages.create_new_stack}
-            onClick={() => history.push('/nodes/create')}
+            onClick={() => history.push('/solutions/create-stack')}
             icon={<i className="fas fa-plus" />}
           />
         </StackHeader>

@@ -9,6 +9,7 @@ import { withRouter, Switch } from 'react-router-dom';
 import NodeCreateForm from './NodeCreateForm';
 import NodeList from './NodeList';
 import SolutionList from './SolutionList';
+import StackCreationForm from './StackCreationForm';
 import NodeInformation from './NodeInformation';
 import NodeDeployment from './NodeDeployment';
 import ClusterMonitoring from './ClusterMonitoring';
@@ -30,11 +31,11 @@ import {
 import { fetchClusterVersionAction } from '../ducks/app/nodes';
 
 const Layout = props => {
+  const { fetchClusterVersion } = props;
   useRefreshEffect(refreshSolutionsAction, stopRefreshSolutionsAction);
   useEffect(() => {
-    props.fetchClusterVersion();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    fetchClusterVersion();
+  }, [fetchClusterVersion]);
 
   const help = [
     {
@@ -171,6 +172,11 @@ const Layout = props => {
 
           <PrivateRoute exact path="/nodes" component={NodeList} />
           <PrivateRoute exact path="/solutions" component={SolutionList} />
+          <PrivateRoute
+            exact
+            path="/solutions/create-stack"
+            component={StackCreationForm}
+          />
           <PrivateRoute exact path="/about" component={About} />
           <PrivateRoute exact path="/" component={ClusterMonitoring} />
         </Switch>
