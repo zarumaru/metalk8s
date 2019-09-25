@@ -318,8 +318,8 @@ const SolutionsList = props => {
         close={() => setisAddSolutionModalOpen(false)}
         isOpen={isAddSolutionModalOpen}
         title={intl.formatMessage(
-          { id: 'add_solution_to_stack' },
-          { stack: selectedStack },
+          { id: 'add_solution_to_environment' },
+          { environment: selectedStack },
         )}
       >
         {isSolutionReady ? (

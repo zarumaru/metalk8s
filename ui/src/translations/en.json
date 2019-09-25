@@ -121,5 +121,5 @@
   "environments": "Environments",
   "create_new_environment": "Create a New Environment",
   "description": "Description",
-  "add_solution_to_stack": "Add solution to stack {stack}"
+  "add_solution_to_environment": "Add solution to the environment {environment}"
 }
