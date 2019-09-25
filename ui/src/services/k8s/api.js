@@ -158,3 +158,28 @@ export async function getUIServiceForAllNamespaces() {
     return { error };
   }
 }
+
+export async function getStacks() {
+  try {
+    return await customObjects.listClusterCustomObject(
+      'solutions.metalk8s.scality.com',
+      'v1alpha1',
+      'stacks',
+    );
+  } catch (error) {
+    return { error };
+  }
+}
+
+export async function createStack(body) {
+  try {
+    return await customObjects.createClusterCustomObject(
+      'solutions.metalk8s.scality.com',
+      'v1alpha1',
+      'stacks',
+      body,
+    );
+  } catch (error) {
+    return { error };
+  }
+}
