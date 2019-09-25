@@ -118,8 +118,8 @@
   "detailed_information": "Detailed Information",
   "failed_to_create_volume":"Failed to create volume.",
   "not_applicable": "Not applicable",
-  "create_new_stack": "Create a New Stack",
-  "stacks": "Stacks",
+  "environments": "Environments",
+  "create_new_environment": "Create a New Environment",
   "description": "Description",
   "add_solution_to_stack": "Add solution to stack {stack}"
 }

@@ -236,9 +236,9 @@ const SolutionsList = props => {
         </BreadcrumbContainer>
         <TableContainer>
           <StackHeader>
-            <PageSubtitle>{intl.messages.create_new_stack}</PageSubtitle>
+            <PageSubtitle>{intl.messages.environments}</PageSubtitle>
             <Button
-              text={intl.messages.create_new_stack}
+              text={intl.messages.create_new_environment}
               onClick={() => history.push('/solutions/create-stack')}
               icon={<i className="fas fa-plus" />}
             />

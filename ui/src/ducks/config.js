@@ -1,4 +1,4 @@
-import { call, put, takeEvery, select, delay } from 'redux-saga/effects';
+import { call, put, takeEvery, select } from 'redux-saga/effects';
 import { mergeTheme } from '@scality/core-ui/dist/utils';
 import * as defaultTheme from '@scality/core-ui/dist/style/theme';
 import * as Api from '../services/api';

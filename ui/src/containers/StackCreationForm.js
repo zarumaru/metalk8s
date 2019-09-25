@@ -1,12 +1,13 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useHistory } from 'react-router';
 import { injectIntl } from 'react-intl';
 import { Formik, Form } from 'formik';
 import * as yup from 'yup';
 import styled from 'styled-components';
 import isEmpty from 'lodash.isempty';
 import { Breadcrumb, Input, Button } from '@scality/core-ui';
-import { padding } from '@scality/core-ui/dist/style/theme';
+import { padding, fontSize } from '@scality/core-ui/dist/style/theme';
 
 import {
   BreadcrumbContainer,
@@ -18,6 +19,11 @@ import { createStackAction } from '../ducks/app/solutions';
 const StackCreationFormContainer = styled.div`
   display: inline-block;
   padding: ${padding.base};
+
+  /* FIXME we might want to change that in core-ui later */
+  .sc-breadcrumb_item {
+    max-width: 300px;
+  }
 `;
 
 const CreationFormContainer = styled.div`
@@ -36,13 +42,14 @@ const TextAreaLabel = styled.label`
 `;
 
 /**
- * width = 200px - ${padding.smaller} - ${border} * 2
+ * width = 200px - ${padding.small} - ${border} * 2
  */
 const TextArea = styled.textarea`
-  width: 188px;
+  width: 178px;
   border-radius: 4px;
   border: 1px solid #87929d;
-  padding: ${padding.smaller};
+  padding: 8px ${padding.small};
+  font-size: ${fontSize.base};
 `;
 
 const ActionContainer = styled.div`
@@ -74,6 +81,7 @@ const FormSection = styled.div`
 const StackCreationForm = props => {
   const { intl } = props;
   const dispatch = useDispatch();
+  const history = useHistory();
   const theme = useSelector(state => state.config.theme);
 
   const initialValues = {
@@ -93,7 +101,9 @@ const StackCreationForm = props => {
           activeColor={theme.brand.secondary}
           paths={[
             <StyledLink to="/solutions">{intl.messages.solutions}</StyledLink>,
-            <BreadcrumbLabel>{intl.messages.create_new_stack}</BreadcrumbLabel>,
+            <BreadcrumbLabel>
+              {intl.messages.create_new_environment}
+            </BreadcrumbLabel>,
           ]}
         />
       </BreadcrumbContainer>
@@ -127,7 +137,14 @@ const StackCreationForm = props => {
                 </FormSection>
 
                 <ActionContainer>
-                  <Button text={intl.messages.cancel} type="button" outlined />
+                  <Button
+                    text={intl.messages.cancel}
+                    type="button"
+                    outlined
+                    onClick={() => {
+                      history.push('/solutions');
+                    }}
+                  />
                   <Button
                     text={intl.messages.create}
                     type="submit"
