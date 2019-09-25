@@ -174,9 +174,13 @@ func (r *ReconcileClockServer) Reconcile(request reconcile.Request) (reconcile.R
 	deployedVersion, ok := depLabels["app.kubernetes.io/version"]
 	if !ok || deployedVersion != version {
 		// Update labels and container
-		labels := labelsForClockServer(instance, true)
+		labels := labelsForClockServer(instance)
+		labelSelector := metav1.LabelSelector{
+			MatchLabels: labels,
+		}
 		found.ObjectMeta.Labels = labels
 		found.Spec.Template.ObjectMeta.Labels = labels
+		deployment.Spec.Selector = &labelSelector
 		found.Spec.Template.Spec.Containers = []corev1.Container{
 			containerForClockServer(instance),
 		}
@@ -218,7 +222,7 @@ func (r *ReconcileClockServer) Reconcile(request reconcile.Request) (reconcile.R
 	serviceLabels := service.ObjectMeta.Labels
 	exposedVersion, ok := serviceLabels["app.kubernetes.io/version"]
 	if !ok || exposedVersion != version {
-		labels := labelsForClockServer(instance, true)
+		labels := labelsForClockServer(instance)
 		service.ObjectMeta.Labels = labels
 		service.Spec.Selector = labels
 		err = r.client.Update(ctx, service)
@@ -239,7 +243,7 @@ func (r *ReconcileClockServer) Reconcile(request reconcile.Request) (reconcile.R
 }
 
 func (r *ReconcileClockServer) deploymentForClockServer(clockserver *examplesolutionv1alpha1.ClockServer) *appsv1.Deployment {
-	labels := labelsForClockServer(clockserver, true)
+	labels := labelsForClockServer(clockserver)
 	labelsSelector := metav1.LabelSelector{
 		MatchLabels: labels,
 	}
@@ -284,7 +288,7 @@ func (r *ReconcileClockServer) deploymentForClockServer(clockserver *examplesolu
 }
 
 func (r *ReconcileClockServer) serviceForClockServer(clockserver *examplesolutionv1alpha1.ClockServer) *corev1.Service {
-	labels := labelsForClockServer(clockserver, true)
+	labels := labelsForClockServer(clockserver)
 	annotations := annotationsForClockServer(clockserver)
 
 	service := &corev1.Service{
@@ -344,18 +348,15 @@ func containerForClockServer(clockserver *examplesolutionv1alpha1.ClockServer) c
 	}
 }
 
-func labelsForClockServer(clockserver *examplesolutionv1alpha1.ClockServer, versionize bool) map[string]string {
-	var labels = map[string]string{
+func labelsForClockServer(clockserver *examplesolutionv1alpha1.ClockServer) map[string]string {
+	return map[string]string{
 		"app":                          "example",
 		"app.kubernetes.io/name":       clockserver.Name,
 		"app.kubernetes.io/component":  "clock-server",
 		"app.kubernetes.io/part-of":    "example",
 		"app.kubernetes.io/managed-by": "example-operator",
+		"app.kubernetes.io/version":    clockserver.Spec.Version,
 	}
-	if versionize {
-		labels["app.kubernetes.io/version"] = clockserver.Spec.Version
-	}
-	return labels
 }
 
 func annotationsForClockServer(clockserver *examplesolutionv1alpha1.ClockServer) map[string]string {

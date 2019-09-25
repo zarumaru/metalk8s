@@ -163,9 +163,13 @@ func (r *ReconcileVersionServer) Reconcile(request reconcile.Request) (reconcile
 	deployedVersion, ok := depLabels["app.kubernetes.io/version"]
 	if !ok || deployedVersion != version {
 		// Update labels and image name
-		labels := labelsForVersionServer(instance, true)
+		labels := labelsForVersionServer(instance)
+		labelSelector := metav1.LabelSelector{
+			MatchLabels: labels,
+		}
 		deployment.ObjectMeta.Labels = labels
 		deployment.Spec.Template.ObjectMeta.Labels = labels
+		deployment.Spec.Selector = &labelSelector
 		deployment.Spec.Template.Spec.Containers = []corev1.Container{
 			containerForVersionServer(instance),
 		}
@@ -207,7 +211,7 @@ func (r *ReconcileVersionServer) Reconcile(request reconcile.Request) (reconcile
 	serviceLabels := service.ObjectMeta.Labels
 	exposedVersion, ok := serviceLabels["app.kubernetes.io/version"]
 	if !ok || exposedVersion != version {
-		labels := labelsForVersionServer(instance, true)
+		labels := labelsForVersionServer(instance)
 		service.ObjectMeta.Labels = labels
 		service.Spec.Selector = labels
 		err = r.client.Update(ctx, service)
