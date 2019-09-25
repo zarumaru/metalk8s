@@ -56,7 +56,7 @@ const SolutionsList = props => {
   const [sortBy, setSortBy] = useState('name');
   const [sortDirection, setSortDirection] = useState('ASC');
   const [isAddSolutionModalOpen, setisAddSolutionModalOpen] = useState(false);
-  const [selectedStack, setSelectedStack] = useState('hhaa');
+  const [selectedStack, setSelectedStack] = useState('');
   const theme = useSelector(state => state.config.theme);
 
   const { intl, history, solutions } = props;
@@ -137,14 +137,36 @@ const SolutionsList = props => {
         return (
           <div>
             <span>
-              {solutions.map((solution, idx) => (
-                <ButtonContainer key={`solution_${idx}`} marginLeft={idx !== 0}>
-                  <Button
-                    text={`${solution.name} ${solution.version}`}
-                    size="smaller"
-                  ></Button>
-                </ButtonContainer>
-              ))}
+              {solutions.map((solution, idx) => {
+                let rowSolution = null;
+                let versionSolution = null;
+
+                rowSolution = solutionsSortedList.find(
+                  s => s.name === solution.name,
+                );
+
+                versionSolution = rowSolution?.versions?.find(
+                  v => v.version === solution.version,
+                );
+
+                return (
+                  <ButtonContainer
+                    key={`solution_${idx}`}
+                    marginLeft={idx !== 0}
+                  >
+                    <Button
+                      size="smaller"
+                      text={`${solution.name} ${solution.version}`}
+                      onClick={() => {
+                        if (rowSolution && versionSolution) {
+                          const url = `${versionSolution.ui_url}/stacks/${row.name}/version/${solution.version}/prepare`;
+                          window.open(url, '_blank');
+                        }
+                      }}
+                    ></Button>
+                  </ButtonContainer>
+                );
+              })}
             </span>
             <ButtonContainer marginLeft={solutions.length !== 0}>
               <Button
@@ -168,7 +190,22 @@ const SolutionsList = props => {
     setSortDirection(sortDirection);
   };
 
-  const solutionsSortedList = sortSelector(solutions, sortBy, sortDirection);
+  let solutionsSortedList = sortSelector(solutions, sortBy, sortDirection);
+
+  // solutionsSortedList = [
+  //   ...solutionsSortedList,
+  //   {
+  //     name: 'Zenko',
+  //     versions: [
+  //       {
+  //         deployed: true,
+  //         iso: '/vagrant/iso/example-solution-0.1.0-dev.iso',
+  //         ui_url: 'http://localhost:31234',
+  //         version: '1.3.1',
+  //       },
+  //     ],
+  //   },
+  // ];
 
   const formattedStack = props.stacks.map(stack => {
     return {
@@ -194,8 +231,6 @@ const SolutionsList = props => {
     solutionsSortedList[0].versions &&
     solutionsSortedList[0].versions[0] &&
     solutionsSortedList[0].versions[0].version;
-
-  console.log('solutions', solutions);
 
   const initialValues = {
     solution: { label: firstSolution, value: firstSolution },
@@ -357,7 +392,10 @@ const SolutionsList = props => {
                         <Button
                           outlined
                           text={intl.messages.cancel}
-                          onClick={() => {}}
+                          onClick={() => {
+                            setisAddSolutionModalOpen(false);
+                            setSelectedStack('');
+                          }}
                         />
                         <Button text={'Add Solution'} type="submit" />
                       </ActionContainer>
