@@ -120,5 +120,6 @@
   "not_applicable": "Not applicable",
   "create_new_stack": "Create a New Stack",
   "stacks": "Stacks",
-  "description": "Description"
+  "description": "Description",
+  "add_solution_to_stack": "Add solution to stack {stack}"
 }

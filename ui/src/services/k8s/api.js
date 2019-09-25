@@ -173,7 +173,6 @@ export async function getStacks() {
 
 export async function createStack(body) {
   try {
-    console.log('hye');
     return await customObjects.createClusterCustomObject(
       'solutions.metalk8s.scality.com',
       'v1alpha1',
