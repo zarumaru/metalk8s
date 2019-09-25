@@ -240,7 +240,9 @@ func (r *ReconcileClockServer) Reconcile(request reconcile.Request) (reconcile.R
 
 func (r *ReconcileClockServer) deploymentForClockServer(clockserver *examplesolutionv1alpha1.ClockServer) *appsv1.Deployment {
 	labels := labelsForClockServer(clockserver, true)
-	labelsSelector := labelsForClockServer(clockserver, false)
+	labelsSelector := metav1.LabelSelector{
+		MatchLabels: labels,
+	}
 	annotations := annotationsForClockServer(clockserver)
 	maxSurge := intstr.FromInt(0)
 	maxUnavailable := intstr.FromInt(1)
@@ -255,9 +257,7 @@ func (r *ReconcileClockServer) deploymentForClockServer(clockserver *examplesolu
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: labelsSelector,
-			},
+			Selector: &labelsSelector,
 			Strategy: appsv1.DeploymentStrategy{
 				Type: appsv1.RollingUpdateDeploymentStrategyType,
 				RollingUpdate: &appsv1.RollingUpdateDeployment{

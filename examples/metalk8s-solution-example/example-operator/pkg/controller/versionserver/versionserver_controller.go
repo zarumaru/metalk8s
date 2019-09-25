@@ -229,7 +229,9 @@ func (r *ReconcileVersionServer) Reconcile(request reconcile.Request) (reconcile
 
 func (r *ReconcileVersionServer) deploymentForVersionServer(versionserver *examplesolutionv1alpha1.VersionServer) *appsv1.Deployment {
 	labels := labelsForVersionServer(versionserver)
-	labelsSelector := metav1.LabelSelector
+	labelsSelector := metav1.LabelSelector{
+		MatchLabels: labels,
+	}
 	annotations := annotationsForVersionServer(versionserver)
 	maxSurge := intstr.FromInt(0)
 	maxUnavailable := intstr.FromInt(1)
@@ -243,9 +245,7 @@ func (r *ReconcileVersionServer) deploymentForVersionServer(versionserver *examp
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &versionserver.Spec.Replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: labelsSelector,
-			},
+			Selector: &labelsSelector,
 			Strategy: appsv1.DeploymentStrategy{
 				Type: appsv1.RollingUpdateDeploymentStrategyType,
 				RollingUpdate: &appsv1.RollingUpdateDeployment{
@@ -272,7 +272,7 @@ func (r *ReconcileVersionServer) deploymentForVersionServer(versionserver *examp
 }
 
 func (r *ReconcileVersionServer) serviceForVersionServer(versionserver *examplesolutionv1alpha1.VersionServer) *corev1.Service {
-	labels := labelsForVersionServer(versionserver, true)
+	labels := labelsForVersionServer(versionserver)
 	annotations := annotationsForVersionServer(versionserver)
 
 	service := &corev1.Service{
@@ -327,18 +327,15 @@ func containerForVersionServer(versionserver *examplesolutionv1alpha1.VersionSer
 	}
 }
 
-func labelsForVersionServer(versionserver *examplesolutionv1alpha1.VersionServer, versionize bool) map[string]string {
-	var labels = map[string]string{
+func labelsForVersionServer(versionserver *examplesolutionv1alpha1.VersionServer) map[string]string {
+	return map[string]string{
 		"app":                          "example",
 		"app.kubernetes.io/name":       versionserver.Name,
 		"app.kubernetes.io/component":  "version-server",
 		"app.kubernetes.io/part-of":    "example",
 		"app.kubernetes.io/managed-by": "example-operator",
+		"app.kubernetes.io/version":    versionserver.Spec.Version,
 	}
-	if versionize {
-		labels["app.kubernetes.io/version"] = versionserver.Spec.Version
-	}
-	return labels
 }
 
 func annotationsForVersionServer(versionserver *examplesolutionv1alpha1.VersionServer) map[string]string {
