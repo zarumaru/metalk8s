@@ -1,0 +1,17 @@
+apiVersion: example-solution.metalk8s.scality.com/v1alpha1
+kind: ClockServer
+metadata:
+  name: clock-server-paris
+  namespace: production-example-solution
+spec:
+  version: '0.1.0-dev'
+  timezone: "UTC+02:00"
+---
+apiVersion: example-solution.metalk8s.scality.com/v1alpha1
+kind: ClockServer
+metadata:
+  name: clock-server-tokyo
+  namespace: production-example-solution
+spec:
+  version: '0.1.0-dev'
+  timezone: "UTC+09:00"

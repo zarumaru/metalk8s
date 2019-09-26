@@ -1,0 +1,6 @@
+apiVersion: solutions.metalk8s.scality.com/v1alpha1
+kind: Stack
+metadata:
+  name: production
+spec:
+  solutions: []
