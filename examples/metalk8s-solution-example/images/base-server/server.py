@@ -17,7 +17,7 @@ def json_response(handler):
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            result_str = json.dumps(result)
+            result_str = json.dumps(result) + '\n'
             self.wfile.write(result_str.encode('utf-8'))
 
         return
@@ -44,7 +44,7 @@ class BaseHandler(BaseHTTPRequestHandler):
         self.send_response(404)
         self.send_header('Content-Type', 'text/html')
         self.end_headers()
-        self.wfile.write(b'<html><h1>Not Found</h1></html>')
+        self.wfile.write(b'<html><h1>Not Found</h1></html>\n')
 
     def error_500(self, exception):
         self.send_response(500)
@@ -54,7 +54,7 @@ class BaseHandler(BaseHTTPRequestHandler):
             '<html>'
             '<h1>Server Internal Error</h1>'
             '<p>An unexpected error occured: {}</p>'
-            '</html>'
+            '</html>\n'
         ).format(exception)
         self.wfile.write(content.encode('utf-8'))
 
