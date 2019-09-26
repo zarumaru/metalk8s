@@ -180,7 +180,7 @@ func (r *ReconcileClockServer) Reconcile(request reconcile.Request) (reconcile.R
 		}
 		found.ObjectMeta.Labels = labels
 		found.Spec.Template.ObjectMeta.Labels = labels
-		deployment.Spec.Selector = &labelSelector
+		found.Spec.Selector = &labelSelector
 		found.Spec.Template.Spec.Containers = []corev1.Container{
 			containerForClockServer(instance),
 		}
