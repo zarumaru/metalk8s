@@ -102,7 +102,8 @@ def _custom_handler(version=None, timezone=None):
             return {'version': version}
 
         def print_time(self):
-            return {'time': datetime.datetime.now(tz=tzinfo).isoformat()}
+            # Time is broken in this commit (for demo)
+            return {'time': 'unknown', 'error': 'Impossible to retrieve time'}
 
     return CustomHandler
 
