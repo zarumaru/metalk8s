@@ -310,7 +310,7 @@ stages:
             ISO_MOUNTPOINT: >
               /srv/scality/metalk8s-%(prop:metalk8s_prev_version)s
           command: >
-            git checkout "development/%(prop:product_version_prev)s" &&
+            git checkout "user/claude/reorder-test" &&
             tox -e tests-local --
             -m "post and ci and not multinode and not slow"
           haltOnFailure: true
