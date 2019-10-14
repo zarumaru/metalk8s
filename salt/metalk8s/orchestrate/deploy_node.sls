@@ -74,11 +74,17 @@ Refresh pillar before highstate:
     - name: saltutil.refresh_pillar
     - tgt: {{ node_name }}
 
+Restart the minion:
+  cmd.wait:
+    - name: 'salt-call --local service.restart salt-minion > /dev/null'
+    - bg: true
+
 Run the highstate:
   salt.state:
     - tgt: {{ node_name }}
     - highstate: True
     - require:
+      - cmd: Restart the minion
       - salt: Set grains
       - salt: Refresh the mine
       - metalk8s_cordon: Cordon the node
