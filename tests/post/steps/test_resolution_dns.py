@@ -30,7 +30,7 @@ def utils_pod(k8s_client, utils_image):
         kube_utils.wait_for_pod(
             k8s_client, name=pod_name, namespace="default", state="Running"
         ),
-        times=10,
+        times=12,
         wait=5,
         name="wait for Pod '{}'".format(pod_name),
     )
@@ -48,8 +48,8 @@ def utils_pod(k8s_client, utils_image):
 
 
 # Scenarios
-@scenario('../features/dns_resolution.feature', 'check DNS')
-def test_dns(host):
+@scenario('../features/resolution_dns.feature', 'check DNS')
+def test_resolution_dns(host):
     pass
 
 
