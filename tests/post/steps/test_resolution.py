@@ -48,7 +48,7 @@ def utils_pod(k8s_client, utils_image):
 
 
 # Scenarios
-@scenario('../features/dns_resolution.feature', 'check DNS')
+@scenario('../features/resolution.feature', 'check DNS')
 def test_dns(host):
     pass
 
