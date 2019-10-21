@@ -1,0 +1,17 @@
+# Custom POC on Intergrating Dex into Metalk8s
+ From #85
+
+### Presumably done! :)
+- Deploying Dex in the cluster, from the chart
+ Expose Dex on the control-plane ingress controller
+ Configure the Kubernetes API server to use Dex, using the generated CA, using oidc: as the prefix of authenticated entities
+ Create two static users in Dex, one admin, one readonly, with some predefined (hashed) password
+ Add a ClusterRoleBinding for the oidc:admin user to have full access
+ Add a metalk8s:readonly ClusterRole which gives reasonable read-only access to some cluster resources (Nodes, Namespaces, Pods, Volumes, PersistentVolumes, maybe some others)
+ Add a ClusterRoleBindding for the oidc:readonly user to the metalk8s:readonly ClusterRole
+
+
+### Pending
+Setting up Dex to use a self-signed certificate, stored in a Secret, with the CA available in a ConfigMap in Namespaces where services are running which require access to this file (e.g., Grafana)
+Configure the UI to require login through Dex
+Configure Grafana to require login though Dex

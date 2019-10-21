@@ -319,10 +319,10 @@ spec:
             path: /healthz
             port: 10254
             scheme: HTTP
-          initialDelaySeconds: 10
+          initialDelaySeconds: 30
           periodSeconds: 10
           successThreshold: 1
-          timeoutSeconds: 1
+          timeoutSeconds: 5
         name: nginx-ingress-controller
         ports:
         - containerPort: 80
@@ -342,7 +342,7 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 10
           successThreshold: 1
-          timeoutSeconds: 1
+          timeoutSeconds: 5
         resources: {}
         securityContext:
           capabilities:

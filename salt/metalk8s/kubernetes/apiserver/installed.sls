@@ -137,6 +137,11 @@ Create kube-apiserver Pod manifest:
           - --service-cluster-ip-range={{ networks.service }}
           - --tls-cert-file=/etc/kubernetes/pki/apiserver.crt
           - --tls-private-key-file=/etc/kubernetes/pki/apiserver.key
+          - --oidc-issuer-url=https://{{ grains.metalk8s.control_plane_ip }}:5556
+          - --oidc-client-id=kubernetes
+          - --oidc-ca-file=/etc/kubernetes/pki/ca.crt
+          - --oidc-username-claim=email
+          - --oidc-groups-claim=groups
         requested_cpu: 250m
         volumes:
           - path: {{ encryption_k8s_path }}
