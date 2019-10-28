@@ -19,11 +19,11 @@ Inject pause image:
     - name: /tmp/pause-3.1.tar
     - source: salt://{{ slspath }}/files/pause-3.1.tar
     - unless: >-
-        ctr -n k8s.io image ls -q | grep k8s.gcr.io/pause | grep 3\\.1
+        ctr -n k8s.io image ls -q | grep k8s.gcr.io/pause-amd64 | grep 3\\.1
     - require:
       - service: Start and enable containerd
   containerd.image_managed:
-    - name: k8s.gcr.io/pause:3.1
+    - name: k8s.gcr.io/pause-amd64:3.1
     - archive_path: /tmp/pause-3.1.tar
     - require:
       - file: Inject pause image

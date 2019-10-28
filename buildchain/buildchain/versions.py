@@ -164,9 +164,9 @@ CONTAINER_IMAGES : Tuple[Image, ...] = (
         digest='sha256:b2dd31b0d23fda63588674e40fd8d05010d07c5d4ac37163fc596ba9065ce38d',
     ),
     Image(
-        name='pause',
+        name='pause-amd64',
         version='3.1',
-        digest='sha256:f78411e19d84a252e53bff71a4407a5686c46983a2c2eeed83929b888179acea',
+        digest='sha256:59eec8837a4d942cc19a52b8c09ea75121acc38114a2c68b98983ce9356b8610',
     ),
     Image(
         name='prometheus',

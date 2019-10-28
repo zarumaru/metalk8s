@@ -506,9 +506,9 @@ SALT_FILES : Tuple[Union[Path, targets.AtomicTarget], ...] = (
     # This image is defined here and not in the `image` module since it is
     # saved into the `salt/` tree.
     targets.RemoteImage(
-        name='pause',
-        version=versions.CONTAINER_IMAGES_MAP['pause'].version,
-        digest=versions.CONTAINER_IMAGES_MAP['pause'].digest,
+        name='pause-amd64',
+        version=versions.CONTAINER_IMAGES_MAP['pause-amd64'].version,
+        digest=versions.CONTAINER_IMAGES_MAP['pause-amd64'].digest,
         repository=constants.GOOGLE_REPOSITORY,
         save_as_tar=True,
         # pylint:disable=line-too-long

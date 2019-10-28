@@ -204,7 +204,7 @@ REMOTE_NAMES : Dict[str, str] = {
     'nginx-ingress-defaultbackend-amd64': 'defaultbackend-amd64',
 }
 
-SAVE_AS_TAR : FrozenSet[str] = frozenset(('nginx', 'pause'))
+SAVE_AS_TAR : FrozenSet[str] = frozenset(('nginx', 'pause-amd64'))
 
 for repo, images in IMGS_PER_REPOSITORY.items():
     for image_name in images:
