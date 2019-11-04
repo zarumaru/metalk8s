@@ -3,8 +3,11 @@ version: "0.2"
 
 branches:
   # yamllint disable rule:line-length
-  user/*, feature/*, improvement/*, bugfix/*, w/*, q/*, hotfix/*, dependabot/*, documentation/*, release/*:
+  feature/*, improvement/*, bugfix/*, w/*, q/*, hotfix/*, dependabot/*, documentation/*, release/*:
     stage: pre-merge
+  user/*:
+    stage: test-upload-artifacts
+
 
 models:
   # --- Re-usable steps (no parameters) ---
@@ -276,6 +279,25 @@ models:
       haltOnFailure: true
 
 stages:
+  test-upload-artifacts:
+    worker:
+      type: local
+    steps:
+      - ShellCommand:
+          name: toto la frite
+          command: >
+            mkdir -p build_status/build_status && echo SUCCESSFUL > build_status/build_status/.final_status
+      - Upload:
+          name: upload toto la frite
+          source: build_status
+      - ShellCommand:
+          name: toto la frite
+          command: >
+            mkdir -p build_status/build_status/lint && echo SUCCESSFUL > build_status/build_status/lint/.final_status
+      - Upload:
+          name: upload toto la frite
+          source: build_status
+
   pre-merge:
     worker:
       type: local
