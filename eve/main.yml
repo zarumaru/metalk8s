@@ -676,9 +676,9 @@ stages:
             OS_USERNAME: "%(secret:scality_cloud_username)s"
             OS_PASSWORD: "%(secret:scality_cloud_password)s"
             OS_TENANT_NAME: "%(secret:scality_cloud_tenant_name)s"
-            # FIXME: this makes hostnames too long
-            # TF_VAR_worker_uuid: "%(prop:worker_uuid)s"
+            TF_VAR_worker_uuid: "%(prop:worker_uuid)s"
             TF_VAR_nodes_count: "2"
+            TF_VAR_stage_name: 'multiple-nodes'
           haltOnFailure: true
       - ShellCommand:
           name: Check SSH config for bootstrap node
@@ -744,6 +744,7 @@ stages:
       - ShellCommand:
           name: Provision Prometheus and AlertManager storage
           env:
+            BOOTSTRAP_NODE_NAME: bootstrap
             SSH_CONFIG: >-
               eve/workers/openstack-multiple-nodes/terraform/ssh_config
           command: >
@@ -752,6 +753,7 @@ stages:
             sudo env
             PRODUCT_TXT=/var/tmp/metalk8s/product.txt
             PRODUCT_MOUNT=/var/tmp/metalk8s
+            BOOTSTRAP_NODE_NAME=$BOOTSTRAP_NODE_NAME
             /tmp/create-volumes.sh
           haltOnFailure: true
       - ShellCommand:
