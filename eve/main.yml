@@ -287,28 +287,37 @@ stages:
               major=$(echo "%(prop:product_version)s" | cut -d'.' -f1) &&
               minor=$(echo "%(prop:product_version)s" | cut -d'.' -f2) &&
               echo "$major.$(( $minor-1 ))"
-      - TriggerStages:
-          name: Trigger build, docs and lint stages simultaneously
-          stage_names:
-            - build
-            - buildprev
-            - docs
-            - lint
-            - unit_tests
-          haltOnFailure: true
-      - SetPropertyFromCommand: *set_version_prop
+      - SetProperty:
+          name: Set current version artifact URL
+          property: artifact_current_version
+          value: "http://artifacts/builds/github:scality:metalk8s:staging-2.4.1.r191113105825.0cd7046.pre-merge.00014820"
+      - SetProperty:
+          name: Set previous version artifact URL
+          property: artifact_previous_version
+          value: "http://artifacts/builds/github:scality:metalk8s:staging-2.3.0.r191113105743.e079914.pre-merge.00014819"
+      - SetPropertyFromCommand:
+          <<: *set_version_prop
+          env:
+            BASE_URL: "%(prop:artifact_current_version)s"
       - SetPropertyFromCommand:
           <<: *set_version_prop
           name: Set previous version as property from built artifacts
           property: metalk8s_version_prev
           env:
-            BASE_URL: "%(prop:artifacts_private_url)s/pre"
+            BASE_URL: "%(prop:artifact_previous_version)s"
       - TriggerStages:
-          name: Trigger single-node and multiple-nodes steps with built ISO
+          name: Trigger multiple single-node downgrade steps with built ISO
           stage_names:
-            - single-node-upgrade
             - single-node-downgrade
-            - multiple-nodes
+            - single-node-downgrade
+            - single-node-downgrade
+            - single-node-downgrade
+            - single-node-downgrade
+            - single-node-downgrade
+            - single-node-downgrade
+            - single-node-downgrade
+            - single-node-downgrade
+            - single-node-downgrade
 
   build:
     worker: &build_worker
@@ -436,19 +445,31 @@ stages:
       flavor: m1.large
       path: eve/workers/openstack-single-node
     steps:
+        #    - SetProperty:
+        #    -   name: Set debug property to single-node-downgrade
+        #    -   property: debug
+        #    -   value: single-node-downgrade
       - Git: *git_pull
       - ShellCommand: *setup_cache
       - ShellCommand: *ssh_ip_setup
       # --- Get ISO for version N ---
-      - ShellCommand: *retrieve_iso_checksum
-      - ShellCommand: *retrieve_iso
+      - ShellCommand:
+          <<: *retrieve_iso_checksum
+          env:
+            <<: *_env_retrieve_artifact
+            BASE_URL: "%(prop:artifact_current_version)s"
+      - ShellCommand:
+          <<: *retrieve_iso
+          env:
+            <<: *_env_retrieve_artifact_retry
+            BASE_URL: "%(prop:artifact_current_version)s"
       - ShellCommand: *check_iso_checksum
       # --- Get ISO for version N-1 ---
       - ShellCommand: &retrieve_prev_iso_checksum
           <<: *retrieve_iso_checksum
           env: &_env_previous_artifact
             DEST_DIR: "/tmp"
-            BASE_URL: "%(prop:artifacts_private_url)s/pre"
+            BASE_URL: "%(prop:artifact_previous_version)s"
           name: Retrieve previous ISO image checksum
       - ShellCommand: &retrieve_prev_iso
           <<: *retrieve_iso
@@ -482,32 +503,6 @@ stages:
           env: &_env_fast_tests
             <<: *_env_local_tests
             PYTEST_FILTERS: "post and ci and not multinode and not slow"
-      - ShellCommand:
-          <<: *local_tests
-          name: Run slow tests locally
-          env:
-            <<: *_env_local_tests
-            PYTEST_FILTERS: "post and ci and not multinode and slow"
-      - ShellCommand:
-          name: Cypress test
-          command: bash cypress.sh
-          workdir: build/ui
-          haltOnFailure: true
-          env:
-            IN_CI: 'True'
-      - ShellCommand:
-          name: Prepare upload folder
-          command: >
-            mkdir -p upload/cypress &&
-            (cp -r cypress/screenshots upload/cypress || true) &&
-            (cp -r cypress/videos upload/cypress || true) &&
-            (cp -r junit upload/ || true)
-          workdir: build/ui
-          alwaysRun: true
-      - Upload:
-          name: Upload cypress and junit folder
-          source: ui/upload
-          alwaysRun: true
       # --- Downgrade to version N-1 ---
       - ShellCommand:
           <<: *add_archive
@@ -540,8 +535,10 @@ stages:
       - Upload: *upload_report_artifacts
       - ShellCommand:
           <<: *wait_debug
+          timeout: 3600
           env:
             STEP_NAME: single-node-downgrade
+            DURATION: "3600"
 
   single-node-upgrade:
     worker: *single_node_worker
