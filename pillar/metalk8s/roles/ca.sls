@@ -15,6 +15,14 @@ mine_functions:
     mine_function: hashutil.base64_encodefile
     fname: /etc/kubernetes/pki/sa.pub
 
+  kubernetes_dex_ca_b64:
+    mine_function: hashutil.base64_encodefile
+    fname: /etc/kubernetes/pki/dex-ca.crt
+
+  kubernetes_dex_server_cert_b64:
+    mine_function: hashutil.base64_encodefile
+    fname: /etc/kubernetes/pki/dex-server.crt
+
 x509_signing_policies:
   kube_apiserver_client_policy:
     - minions: '*'
@@ -50,4 +58,11 @@ x509_signing_policies:
     - signing_cert: /etc/kubernetes/pki/front-proxy-ca.crt
     - keyUsage: critical digitalSignature, keyEncipherment
     - extendedKeyUsage: clientAuth
+    - days_valid: 365
+  dex_server_policy:
+    - minions: '*'
+    - signing_private_key: /etc/kubernetes/pki/dex-ca.key
+    - signing_cert: /etc/kubernetes/pki/dex-ca.crt
+    - keyUsage: critical digitalSignature, keyEncipherment
+    - extendedKeyUsage: serverAuth, clientAuth
     - days_valid: 365
