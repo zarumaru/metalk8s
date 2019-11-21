@@ -128,7 +128,8 @@ def _get_salt_api_address(host, version):
     ])
     with host.sudo():
         cmd_output = host.check_output(cmd_ip)
-    ip = json.loads(cmd_output)['local'][0]
+    # We take the last IP, otherwise we can have the control plane VIP instead
+    ip = json.loads(cmd_output)['local'][-1]
     return '{}:{}'.format(ip, SALT_API_PORT)
 
 
