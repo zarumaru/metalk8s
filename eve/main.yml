@@ -967,7 +967,7 @@ stages:
       - ShellCommand:
           <<: *terraform_apply
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
-          env:
+          env: &_env_terraform_multiple_nodes
             <<: *_env_terraform
             TF_VAR_nodes_count: "2"
       - ShellCommand:
@@ -987,13 +987,14 @@ stages:
           # FIXME: find a way to share bastion public key to all spawned
           # instances from Terraform
           name: Send bastion public key to nodes
-          command: >
-            scp -F ssh_config -3 bastion:.ssh/bastion.pub bootstrap:.ssh/ &&
-            ssh -F ssh_config bootstrap
-            "cat .ssh/bastion.pub >> .ssh/authorized_keys" &&
-            scp -F ssh_config -3 bastion:.ssh/bastion.pub node1:.ssh/ &&
-            ssh -F ssh_config node1
-            "cat .ssh/bastion.pub >> .ssh/authorized_keys"
+          env:
+            HOSTS_LIST: 'bootstrap node1 node2'
+          command: |-
+            for host in $HOSTS_LIST; do
+              scp -F ssh_config -3 bastion:.ssh/bastion.pub "$host":.ssh/
+              ssh -F ssh_config "$host" \
+                "cat .ssh/bastion.pub >> .ssh/authorized_keys"
+            done
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
       - ShellCommand:
           # FIXME: find a cleaner way with Terraform.
@@ -1003,20 +1004,20 @@ stages:
               scp -F ssh_config -3 bastion:.ssh/bastion bootstrap:./         &&
               ssh -F ssh_config bootstrap "sudo cp bastion /etc/metalk8s/pki/"
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
-      - ShellCommand:
+      - ShellCommand: &copy_iso_bootstrap_node_ssh
           name: Copy ISO to bootstrap node
           command: >
             scp -F ssh_config ../../../../metalk8s.iso bootstrap:
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
           haltOnFailure: true
-      - ShellCommand:
+      - ShellCommand: &create_mountpoint_bootstrap_node_ssh
           name: Create mountpoint in bootstrap node
           command: >
             ssh -F ssh_config bootstrap
             sudo mkdir -p /var/tmp/metalk8s
           workdir: build/eve/workers/openstack-multiple-nodes/terraform/
           haltOnFailure: true
-      - ShellCommand:
+      - ShellCommand: &mount_iso_bootstrap_node_ssh
           name: Mount ISO image in bootstrap node
           command: >
             ssh -F ssh_config bootstrap
@@ -1103,6 +1104,99 @@ stages:
             SSH_CONFIG: >-
               eve/workers/openstack-multiple-nodes/terraform/ssh_config
             STEP_NAME: multiple-nodes-centos
+      - SetPropertyFromCommand:
+          name: Set node2 hostname property
+          property: node2_hostname
+          command: ssh -F ssh_config node2 hostname
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
+          haltOnFailure: true
+      - SetPropertyFromCommand:
+          name: Set node2 control plane IP property
+          property: node2_control_plane_ip
+          command: >
+            ssh -F ssh_config node2
+              /sbin/ip -j -4 a s eth1 | jq -r .[1].addr_info[0].local
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
+          haltOnFailure: true
+      - ShellCommand: &add_node_to_cluster_over_ssh
+          name: Add a node to the cluster
+          command: >
+            scp -F "$SSH_CONFIG" eve/add-node.sh bootstrap:/tmp/add-node.sh &&
+            ssh -F "$SSH_CONFIG" bootstrap
+            sudo /tmp/add-node.sh "$METALK8S_VERSION"
+            "$HOSTNAME" "$IP_ADDRESS" "$NODE_ROLES"
+          env:
+            HOSTNAME: "%(prop:node2_hostname)s"
+            IP_ADDRESS: "%(prop:node2_control_plane_ip)s"
+            METALK8S_VERSION: "%(prop:metalk8s_version)s"
+            NODE_ROLES: 'master etcd infra'
+            SSH_CONFIG: >-
+              eve/workers/openstack-multiple-nodes/terraform/ssh_config
+          haltOnFailure: true
+      - SetPropertyFromCommand:
+          name: Set bootstrap backup archive property
+          property: bootstrap_backup_archive
+          command: >
+            ssh -F ssh_config bootstrap
+            "sudo find /var/lib/metalk8s -name 'backup_*.tar.gz'
+            -printf '%f\n' | sort | tail -n1"
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
+          haltOnFailure: true
+      - ShellCommand:
+          name: Retrieve the backup archive from the bootstrap node
+          command: >
+            scp -F ssh_config
+            bootstrap:"/var/lib/metalk8s/%(prop:bootstrap_backup_archive)s"
+            /tmp
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
+          haltOnFailure: true
+      - ShellCommand:
+          name: Destroy the bootstrap node
+          env: *_env_terraform_multiple_nodes
+          command: >
+            terraform destroy -auto-approve
+              -target openstack_compute_instance_v2.bootstrap
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
+          haltOnFailure: true
+      - ShellCommand:
+          name: Recreate the bootstrap node
+          env: *_env_terraform_multiple_nodes
+          command:
+            terraform apply -auto-approve -refresh
+              -target openstack_compute_instance_v2.bootstrap
+              -target null_resource.ssh_config
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
+          haltOnFailure: true
+      - ShellCommand:
+          name: Copy the backup archive to the bootstrap node
+          command: >
+            scp -F ssh_config
+              "/tmp/%(prop:bootstrap_backup_archive)s" bootstrap:/tmp
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
+          haltOnFailure: true
+      - ShellCommand: *copy_iso_bootstrap_node_ssh
+      - ShellCommand: *create_mountpoint_bootstrap_node_ssh
+      - ShellCommand: *mount_iso_bootstrap_node_ssh
+      - ShellCommand:
+          name: Restore the bootstrap node
+          command: >
+            ssh -F ssh_config bootstrap
+            sudo /var/tmp/metalk8s/restore.sh
+            --backup-file "/tmp/%(prop:bootstrap_backup_archive)s"
+          workdir: build/eve/workers/openstack-multiple-nodes/terraform/
+          haltOnFailure: true
+      - ShellCommand:
+          <<: *bastion_tests
+          name: Run fast tests on the bastion
+          env:
+            <<: *_env_bastion_tests
+            PYTEST_FILTERS: "post and ci and not slow"
+      - ShellCommand:
+          <<: *bastion_tests
+          name: Run slow tests on the bastion
+          env:
+            <<: *_env_bastion_tests
+            PYTEST_FILTERS: "post and ci and slow"
       - Upload: *upload_report_artifacts
       - ShellCommand:
           <<: *add_final_status_artifact_success
