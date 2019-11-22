@@ -13,12 +13,14 @@ cat > "$OUTPUT_FILE" << EOF
 apiVersion: metalk8s.scality.com/v1alpha2
 kind: BootstrapConfiguration
 networks:
-  controlPlane: 10.100.0.0/16
+  controlPlane: 192.168.1.0/28
   workloadPlane: 10.100.0.0/16
 ca:
   minion: $(cat /etc/salt/minion_id)
 apiServer:
-  host: $(ip route get 10.100.0.0 | awk '/10.100.0.0/{ print $6 }')
+  host: 192.168.1.1
+  keepalived:
+    enabled: true
 archives:
   - /var/tmp/metalk8s
 EOF
