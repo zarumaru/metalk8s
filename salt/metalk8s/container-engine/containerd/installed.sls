@@ -2,6 +2,7 @@
 {%- from "metalk8s/map.jinja" import metalk8s with context %}
 {%- from "metalk8s/map.jinja" import kubelet with context %}
 {%- from "metalk8s/map.jinja" import repo with context %}
+{%- from "metalk8s/map.jinja" import networks with context %}
 
 {%- set registry_ip = metalk8s.endpoints['repositories'].ip %}
 {%- set registry_port = metalk8s.endpoints['repositories'].ports.http %}
@@ -36,12 +37,16 @@ Install containerd:
 Create containerd service drop-in:
   file.managed:
     - name: /etc/systemd/system/containerd.service.d/50-metalk8s.conf
-    - source: salt://{{ slspath }}/files/50-metalk8s.conf
+    - source: salt://{{ slspath }}/files/50-metalk8s.conf.j2
+    - template: jinja
     - user: root
     - group: root
     - mode: 0644
     - makedirs: true
     - dir_mode: 0755
+    - context:
+      environment: >-
+        NO_PROXY=127.0.0.1,localhost,{{ networks.values() | join(",") }}
     - require:
       - metalk8s_package_manager: Install containerd
 
