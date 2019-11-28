@@ -43,6 +43,7 @@ Configure {{ repo_name }} repository:
   {%- endif %}
     - repo_gpg_check: {{ repo_config.repo_gpg_check }}
     - enabled: {{ repo_config.enabled }}
+    - proxy: _none_
     - refresh: false
     - onchanges_in:
       - cmd: Refresh yum cache
