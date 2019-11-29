@@ -1,6 +1,10 @@
 import { call, put, takeEvery, select } from 'redux-saga/effects';
 import { mergeTheme } from '@scality/core-ui/dist/utils';
 import * as defaultTheme from '@scality/core-ui/dist/style/theme';
+import { loadUser, createUserManager } from 'redux-oidc';
+import { USER_FOUND } from 'redux-oidc';
+import { WebStorageStateStore } from 'oidc-client';
+import { store } from '../index';
 import * as Api from '../services/api';
 import * as ApiK8s from '../services/k8s/api';
 import * as ApiSalt from '../services/salt/api';
@@ -23,6 +27,19 @@ const defaultState = {
   language: EN_LANG,
   theme: {},
   api: null,
+  userManagerConfig: {
+    client_id: 'metalk8s-ui',
+    redirect_uri: 'http://localhost:3000/callback',
+    response_type: 'id_token',
+    scope:
+      'openid profile email offline_access audience:server:client_id:oidc-auth-client',
+    authority: '',
+    loadUserInfo: false,
+    post_logout_redirect_uri: '/',
+    userStore: new WebStorageStateStore({ store: localStorage }),
+  },
+  userManager: null,
+  isUserLoaded: false,
 };
 
 export default function reducer(state = defaultState, action = {}) {
