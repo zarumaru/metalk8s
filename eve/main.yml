@@ -82,6 +82,8 @@ models:
       timeout: 3600
       command: |
         bash -c '
+        sleep 3600
+        exit 0
         DEBUG_STEPS="%(prop:debug)s"
         DURATION="${DURATION:-3600}"
         RUN_STEP=0
@@ -410,9 +412,9 @@ stages:
           stage_names:
             - build
             - buildprev
-            - docs
-            - lint
-            - unit_tests
+            #- docs
+            #- lint
+            #- unit_tests
           haltOnFailure: true
       - SetPropertyFromCommand: *set_version_prop
       - SetPropertyFromCommand:
@@ -428,6 +430,7 @@ stages:
             # Downgrade is deactivated on this branch due to #2058
             #- single-node-downgrade-centos
             - single-node-install-rhel
+            - multiple-nodes-centos
             - multiple-nodes-centos
       - ShellCommand: *add_final_status_artifact_success
       - Upload: *upload_final_status_artifact
