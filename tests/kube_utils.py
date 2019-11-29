@@ -8,11 +8,10 @@ def get_pods(
     node='bootstrap', namespace='default', state='Running'
 ):
     """Return the pod `component` from the specified node"""
-
     field_selector = ['status.phase={}'.format(state)]
 
     if node:
-        nodename = utils.resolve_hostname(node, ssh_config)
+        nodename = utils.get_node_name(node, ssh_config)
         field_selector.append('spec.nodeName={}'.format(nodename))
 
     return k8s_client.list_namespaced_pod(
