@@ -3,6 +3,7 @@ import sys
 
 from buildplan import core
 from buildplan import dsl
+from buildplan import shell
 from buildplan import yamlprint
 
 
@@ -154,16 +155,17 @@ def set_version_property():
     return core.SetPropertyFromCommand(
         "Set version as property from built artifacts",
         property_name="metalk8s_version",
-        command=(
-            "bash -c '"
-            '. <(curl -s "%(prop:artifacts_private_url)s")'
-            " && echo $VERSION'"
+        command="bash -c '{}'".format(
+            shell._and(
+                '. <(curl -s "%(prop:artifacts_private_url)s")',
+                "echo $VERSION",
+            )
         ),
     )
 
 
 def build_all():
-    return core.ShellCommand(
+    return shell.Shell(
         "Build everything",
         command="./doit.sh -n 4",
         env={"PYTHON_SYS": "python3.6"},
@@ -173,7 +175,7 @@ def build_all():
 
 
 def build_docs():
-    return core.ShellCommand(
+    return shell.Shell(
         "Build documentation",
         command="tox --workdir /tmp/tox -e docs -- html latexpdf",
         env={"READTHEDOCS": "True"},
@@ -182,7 +184,7 @@ def build_docs():
 
 
 def lint_all():
-    return core.ShellCommand(
+    return shell.Shell(
         "Run all linting targets",
         command="./doit.sh lint",
         use_pty=True,
