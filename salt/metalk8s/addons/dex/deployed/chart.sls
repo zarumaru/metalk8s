@@ -45,6 +45,7 @@ stringData:
       trustedPeers:
       - metalk8s-ui
       - grafana-ui
+      - metalk8s-cli
     - id: metalk8s-ui
       name: MetalK8s UI
       redirectURIs:
@@ -57,6 +58,12 @@ stringData:
       - '{% endraw %}https://{{ grains.metalk8s.control_plane_ip }}:8443/grafana/login/generic_oauth{%
         raw %}'
       secret: 4lqK98NcsWG5qBRHJUqYM1
+    - id: metalk8s-cli
+      name: MetalK8s CLI
+      redirectURIs:
+      - http://localhost
+      - http://127.0.0.1
+      secret: jfakfka9i32242k4j2k42j42249kah
     enablePasswordDB: true
     staticPasswords:
     - email: admin@metalk8s.invalid
@@ -188,7 +195,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 278f2b27e9441887e4070365aa3df2ccf668da0025ebf565605555c2b7b16042
+        checksum/config: f9b4185dfcd7349c480242e9992ec51b5ef7a115330b968c668ccc58a6424fff
       labels:
         app.kubernetes.io/component: dex
         app.kubernetes.io/instance: dex

@@ -75,6 +75,7 @@ config:
     trustedPeers:
     - metalk8s-ui
     - grafana-ui
+    - metalk8s-cli
   - id: metalk8s-ui
     redirectURIs:
     - '{% endraw %}https://{{ grains.metalk8s.control_plane_ip }}:8443/oauth2/callback{% raw %}'
@@ -85,6 +86,12 @@ config:
     redirectURIs:
     - '{% endraw %}https://{{ grains.metalk8s.control_plane_ip }}:8443/grafana/login/generic_oauth{% raw %}'
     secret: "4lqK98NcsWG5qBRHJUqYM1"
+  - id: metalk8s-cli
+    name: MetalK8s CLI
+    redirectURIs:
+    - http://localhost
+    - http://127.0.0.1
+    secret: jfakfka9i32242k4j2k42j42249kah
 
   staticPasswords:
     - email: "admin@metalk8s.invalid"
