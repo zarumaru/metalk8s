@@ -121,6 +121,7 @@ def lint():
 
 
 @dsl.WithStatus()
+@dsl.WithSetup([dsl.SetupStep.GIT, dsl.SetupStep.CACHE, dsl.SetupStep.SSH])
 def single_node():
     return core.Stage(
         name="single-node",
@@ -134,6 +135,7 @@ def single_node():
 
 
 @dsl.WithStatus()
+@dsl.WithSetup([dsl.SetupStep.GIT, dsl.SetupStep.CACHE, dsl.SetupStep.SSH])
 def multiple_nodes():
     return core.Stage(
         name="multiple-nodes",

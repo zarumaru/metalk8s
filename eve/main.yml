@@ -182,6 +182,21 @@ stages:
         command: mkdir -p build_status/build_status/single-node && echo 'FAILED' >
           build_status/build_status/single-node/final_status
         haltOnFailure: true
+    - Git:
+        name: git pull
+        repourl: '%(prop:git_reference)s'
+        method: clobber
+        retryFetch: true
+        haltOnFailure: true
+    - ShellCommand:
+        name: Setup proxy cache
+        command: curl -s http://proxy-cache/setup.sh | sudo sh && . /usr/local/bin/use_scality_proxy_cache
+        haltOnFailure: true
+    - ShellCommand:
+        name: Install SSH keys and report connection info
+        command: "mkdir -p ~/.ssh; echo \"%(secret:ssh_pub_keys)s\" >> ~/.ssh/authorized_keys;\
+          \ IP=$( ip -f inet addr show eth0 | sed -En 's/^.*inet ([0-9.]+).*$/\\1/p'\
+          \ ); echo \"Connect to this worker using:\n    ssh eve@$IP\""
     - ShellCommand:
         name: Set build status to 'SUCCESSFUL' for single-node
         command: mkdir -p build_status/build_status/single-node && echo 'SUCCESSFUL'
@@ -203,6 +218,21 @@ stages:
         command: mkdir -p build_status/build_status/multiple-nodes && echo 'FAILED'
           > build_status/build_status/multiple-nodes/final_status
         haltOnFailure: true
+    - Git:
+        name: git pull
+        repourl: '%(prop:git_reference)s'
+        method: clobber
+        retryFetch: true
+        haltOnFailure: true
+    - ShellCommand:
+        name: Setup proxy cache
+        command: curl -s http://proxy-cache/setup.sh | sudo sh && . /usr/local/bin/use_scality_proxy_cache
+        haltOnFailure: true
+    - ShellCommand:
+        name: Install SSH keys and report connection info
+        command: "mkdir -p ~/.ssh; echo \"%(secret:ssh_pub_keys)s\" >> ~/.ssh/authorized_keys;\
+          \ IP=$( ip -f inet addr show eth0 | sed -En 's/^.*inet ([0-9.]+).*$/\\1/p'\
+          \ ); echo \"Connect to this worker using:\n    ssh eve@$IP\""
     - ShellCommand:
         name: Set build status to 'SUCCESSFUL' for multiple-nodes
         command: mkdir -p build_status/build_status/multiple-nodes && echo 'SUCCESSFUL'

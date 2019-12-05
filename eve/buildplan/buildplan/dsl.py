@@ -154,9 +154,10 @@ class WithArtifacts(StageDecorator):
 # }}}
 # Setup steps {{{
 class SetupStep(enum.Enum):
-    GIT = "git_pull"
     CACHE = "setup_cache"
     DOCKER = "wait_for_docker"
+    GIT = "git_pull"
+    SSH = "setup_ssh"
 
     @property
     def step_factory(self):
@@ -183,6 +184,25 @@ class SetupStep(enum.Enum):
                 ]
             ),
             halt_on_failure=True,
+        )
+
+    @staticmethod
+    def setup_ssh():
+        return core.ShellCommand(
+            "Install SSH keys and report connection info",
+            command="; ".join(
+                [
+                    "mkdir -p ~/.ssh",
+                    'echo "%(secret:ssh_pub_keys)s" >> ~/.ssh/authorized_keys',
+                    (
+                        "IP=$( "
+                        "ip -f inet addr show eth0 "
+                        "| sed -En 's/^.*inet ([0-9.]+).*$/\\1/p' "
+                        ")"
+                    ),
+                    'echo "Connect to this worker using:\n    ssh eve@$IP"',
+                ]
+            ),
         )
 
     @staticmethod
