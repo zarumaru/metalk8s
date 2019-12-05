@@ -45,6 +45,8 @@ def pre_merge():
 
 
 @dsl.WithStatus()
+@dsl.WithArtifacts(urls=["metalk8s.iso", "SHA256SUM", "product.txt"])
+@dsl.WithSetup([dsl.SetupStep.DOCKER, dsl.SetupStep.GIT, dsl.SetupStep.CACHE])
 def build():
     return core.Stage(
         name="build",
@@ -56,7 +58,17 @@ def build():
                 )
             ],
         ),
-        steps=[],
+        steps=[
+            build_all(),
+            *dsl.copy_artifacts(
+                [
+                    "build.log",
+                    "_build/metalk8s.iso",
+                    "_build/SHA256SUM",
+                    "_build/root/product.txt",
+                ]
+            ),
+        ],
     )
 
 
@@ -131,6 +143,16 @@ def set_version_property():
             '. <(curl -s "%(prop:artifacts_private_url)s")'
             " && echo $VERSION'"
         ),
+    )
+
+
+def build_all():
+    return core.ShellCommand(
+        "Build everything",
+        command="./doit.sh -n 4",
+        env={"PYTHON_SYS": "python3.6"},
+        use_pty=True,
+        halt_on_failure=True,
     )
 
 
