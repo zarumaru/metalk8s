@@ -73,6 +73,14 @@ def build():
 
 
 @dsl.WithStatus()
+@dsl.WithArtifacts(
+    urls=[
+        "docs/html/index.html",
+        "docs/latex/MetalK8s.pdf",
+        "docs/CHANGELOG.md",
+    ]
+)
+@dsl.WithSetup([dsl.SetupStep.GIT, dsl.SetupStep.CACHE])
 def docs():
     return core.Stage(
         name="docs",
@@ -86,7 +94,12 @@ def docs():
                 )
             ],
         ),
-        steps=[],
+        steps=[
+            build_docs(),
+            *dsl.copy_artifacts(
+                ["docs/_build/*", "CHANGELOG.md"], destination="docs",
+            ),
+        ],
     )
 
 
@@ -152,6 +165,15 @@ def build_all():
         command="./doit.sh -n 4",
         env={"PYTHON_SYS": "python3.6"},
         use_pty=True,
+        halt_on_failure=True,
+    )
+
+
+def build_docs():
+    return core.ShellCommand(
+        "Build documentation",
+        command="tox --workdir /tmp/tox -e docs -- html latexpdf",
+        env={"READTHEDOCS": "True"},
         halt_on_failure=True,
     )
 
