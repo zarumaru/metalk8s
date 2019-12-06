@@ -6,7 +6,7 @@ from buildplan import core
 # Helpers {{{
 def _fmt_args(*args, join_with=" "):
     """Join an iterable of `Optional[str]`, omitting `None`s."""
-    return join_with.join(str(arg) for arg in args if args is not None)
+    return join_with.join(str(arg) for arg in args if arg is not None)
 
 
 def _and(*args):
@@ -28,14 +28,14 @@ def _for(values_in, command, var="varname"):
         else " ".join(map(str, values_in))
     )
 
-    return _seq('for {var} in {values}', "do {command}", "done").format(
+    return _seq("for {var} in {values}", "do {command}", "done").format(
         var=var, values=values, command=command,
     )
 
 
 def _if(predicate, _then, _else=None):
     return _seq(
-        'if "{predicate}"',
+        'if {predicate}',
         "then {_then}",
         "else {_else}" if _else is not None else None,
         "done",
@@ -51,7 +51,6 @@ class Shell(core.ShellCommand):
         if sudo:
             command = "sudo " + command
 
-        self._kwargs = kwargs
         super(Shell, self).__init__(name, command, **kwargs)
 
 
@@ -60,6 +59,7 @@ class Bash(Shell):
         self, name, command, *args, inline=False, wrap_env=False, **kwargs
     ):
         if inline:
+            self._inline, self._script = True, None
             if args:
                 raise ValueError(
                     "Cannot pass positional arguments to `Bash` "
@@ -68,6 +68,7 @@ class Bash(Shell):
             full_command = "bash -c '{}'".format(command)
 
         else:
+            self._inline, self._script = False, command
             inner_command = _fmt_args(command, *args)
 
             if wrap_env and "env" in kwargs:
@@ -84,6 +85,3 @@ class Bash(Shell):
             full_command = "bash " + inner_command
 
         super(Bash, self).__init__(name, full_command, **kwargs)
-
-
-# }}}

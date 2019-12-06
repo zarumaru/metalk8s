@@ -167,8 +167,19 @@ def single_node():
 
 
 @dsl.WithStatus()
-@dsl.WithSetup([dsl.SetupStep.GIT, dsl.SetupStep.CACHE, dsl.SetupStep.SSH])
+@dsl.WithArtifacts(urls=["sosreport/multiple-nodes"])
+@dsl.WithSetup(
+    [
+        dsl.SetupStep.GIT,
+        dsl.SetupStep.CACHE,
+        dsl.SetupStep.SSH,
+        dsl.SetupStep.CHECK_DEPS,
+    ]
+)
+@dsl.WithTerraform(tf_vars={"nodes_count": "2"}, setup_bastion=True)
 def multiple_nodes():
+    ssh_config = "eve/workers/openstack-multiple-nodes/terraform/ssh_config"
+
     return core.Stage(
         name="multiple-nodes",
         worker=core.OpenStackWorker(
@@ -176,7 +187,49 @@ def multiple_nodes():
             flavor=core.OpenStackWorker.Flavor.MEDIUM,
             image=core.OpenStackWorker.Image.CENTOS7,
         ),
-        steps=[],
+        steps=[
+            *dsl.on_remote(host="bootstrap")(
+                *get_iso_from_artifacts(),
+                *prepare_bootstrap(),
+                install_bootstrap(),
+                provision_prometheus_volumes(),
+                enable_ipip(),
+            ),
+            *dsl.on_remote(host="bastion")(
+                run_tests(
+                    "Run installation scenarii",
+                    filters="install and ci and multinodes",
+                    ssh_config=ssh_config,
+                ),
+                run_tests(
+                    "Run fast tests",
+                    filters="post and ci and multinodes and not slow",
+                    ssh_config=ssh_config,
+                ),
+                run_tests(
+                    "Run slow tests",
+                    filters="post and ci and multinodes and slow",
+                    ssh_config=ssh_config,
+                ),
+            ),
+            # TODO: mutualize, maybe have a way to generate for loops, or just
+            # a single one and only accept single steps for
+            # multi-host `on_remote`...
+            *dsl.on_remote(host="bootstrap")(
+                collect_sosreport(),
+                *dsl.copy_artifacts(
+                    ["/var/tmp/sosreport*"],
+                    destination="sosreport/single-multiple-nodes/bootstrap",
+                ),
+            ),
+            *dsl.on_remote(host="node1")(
+                collect_sosreport(),
+                *dsl.copy_artifacts(
+                    ["/var/tmp/sosreport*"],
+                    destination="sosreport/single-multiple-nodes/node1",
+                ),
+            ),
+        ],
     )
 
 
@@ -406,6 +459,13 @@ def collect_sosreport(owner="eve", group="eve"):
             ),
             "sudo chown {}:{} /var/tmp/sosreport*".format(owner, group),
         ),
+    )
+
+
+def enable_ipip():
+    return shell.Bash(
+        "Enable IP-in-IP encapsulation for Calico",
+        command="/home/centos/scripts/enable_ipip.sh",
     )
 
 
