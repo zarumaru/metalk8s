@@ -125,10 +125,10 @@ def copy_artifacts(sources, destination=None, **kwargs):
             CopyArtifacts(sources=source_list, destination=dest)
             for dest, source_list in sources.items()
         ]
-
-    yield CopyArtifacts(
-        sources=sources, destination=destination, **kwargs,
-    )
+    else:
+        yield CopyArtifacts(
+            sources=sources, destination=destination, **kwargs,
+        )
 
 
 class WithArtifacts(StageDecorator):
