@@ -213,8 +213,6 @@ models:
           workloadPlane: 10.100.0.0/16
         ca:
           minion: $(hostname)
-        apiServer:
-          host: $(ip route get 10.100.0.0 | awk '/10.100.0.0/{ print $6 }')
         archives:
           - "/srv/scality/metalk8s-${PRODUCT_VERSION}"
         END

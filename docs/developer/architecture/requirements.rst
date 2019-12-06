@@ -204,9 +204,6 @@ discovered through an updated DNS entry), it must be possible to reconfigure
 the deployment accordingly, with as little impact as possible (i.e., requiring
 as little changes as possible). This related to the `DNS` section above.
 
-For some services, e.g. `keepalived` configuration, IP addresses are mandatory,
-so these are permitted.
-
 Multi-Homed Servers
 -------------------
 A deployment can specify subnet CIDRs for various purposes, e.g. control-plane,
