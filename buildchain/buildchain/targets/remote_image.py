@@ -97,46 +97,40 @@ class RemoteImage(image.ContainerImage):
             'title': lambda _: self.show('PULL IMG'),
             'doc': 'Download {} container image.'.format(self.name),
             'uptodate': [True],
+            'actions': [],
         })
 
-        # Use Docker to pull, tag, then save the image
-        tar_actions = [
-            (
-                docker_command.docker_pull,
-                [
-                    self.repository,
-                    self._remote_name,
-                    self.version,
-                    self.digest,
-                ],
-                {}
-            ),
-            (
-                docker_command.docker_tag,
-                [
-                    '{img.repository}/{img.name}'.format(img=self),
-                    self.remote_fullname,
-                    self.version,
-                ],
-                {}
-            ),
-            (docker_command.docker_save, [self.fullname, self.filepath], {})
-        ]
-
-        # Use Skopeo to directly copy the remote image into a directory
-        # of image layers
-        copy_actions = [
-            self.mkdirs,
-            self._skopeo_copy(),
-        ]
-
-        if self._use_tar and self._tar_only:
-            task['actions'] = tar_actions
-        else:
-            if self._use_tar:
-                task['actions'] = tar_actions + copy_actions
-            else:
-                task['actions'] = copy_actions
+        if self._use_tar:
+            # Use Docker to pull, tag, then save the image
+            task['actions'] += [
+                (
+                    docker_command.docker_pull,
+                    [
+                        self.repository,
+                        self._remote_name,
+                        self.version,
+                        self.digest,
+                    ],
+                    {}
+                ),
+                (
+                    docker_command.docker_tag,
+                    [
+                        '{img.repository}/{img.name}'.format(img=self),
+                        self.remote_fullname,
+                        self.version,
+                    ],
+                    {}
+                ),
+                (docker_command.docker_save, [self.fullname, self.filepath], {})
+            ]
+        elif not self._use_tar or not self._tar_only:
+            # Use Skopeo to directly copy the remote image into a directory
+            # of image layers
+            task['actions'] += [
+                self.mkdirs,
+                self._skopeo_copy(),
+            ]
             task['clean'] = [self.clean]
 
         return task
