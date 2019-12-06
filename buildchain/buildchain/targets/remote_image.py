@@ -83,7 +83,7 @@ class RemoteImage(image.ContainerImage):
     @property
     def filepath(self) -> Path:
         """Path to the file tracked on disk."""
-        if self._use_tar and not self._tar_only:
+        if self._use_tar and self._tar_only:
             return self.dest_dir/'{img.name}-{img.version}{ext}'.format(
                 img=self, ext='.tar'
             )
@@ -124,7 +124,7 @@ class RemoteImage(image.ContainerImage):
                 ),
                 (docker_command.docker_save, [self.fullname, self.filepath], {})
             ]
-        elif not self._use_tar or not self._tar_only:
+        if not self._use_tar or not self._tar_only:
             # Use Skopeo to directly copy the remote image into a directory
             # of image layers
             task['actions'] += [
