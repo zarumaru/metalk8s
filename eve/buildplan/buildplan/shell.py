@@ -71,11 +71,11 @@ class Bash(Shell):
             inner_command = _fmt_args(command, *args)
 
             if wrap_env and "env" in kwargs:
-                command = "env {values} {command}".format(
+                inner_command = "env {values} {command}".format(
                     values=_fmt_args(
                         *(
                             "{}={}".format(key, value)
-                            for key, value in kwargs["env"].items()
+                            for key, value in kwargs.pop("env").items()
                         )
                     ),
                     command=inner_command,
