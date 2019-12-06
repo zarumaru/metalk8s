@@ -68,6 +68,10 @@ export function updateLanguageAction(language) {
   return { type: UPDATE_LANGUAGE, payload: language };
 }
 
+// Selectors
+export const languageSelector = state => state.config.language;
+export const apiConfigSelector = state => state.config.api;
+
 // Sagas
 export function* fetchTheme() {
   const result = yield call(Api.fetchTheme);
@@ -107,7 +111,7 @@ export function* setInitialLanguage() {
 
 export function* updateLanguage(action) {
   yield put(setLanguageAction(action.payload));
-  const language = yield select(state => state.config.language);
+  const language = yield select(languageSelector);
   localStorage.setItem(LANGUAGE, language);
 }
 
