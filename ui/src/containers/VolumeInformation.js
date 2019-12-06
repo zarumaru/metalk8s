@@ -4,8 +4,12 @@ import { useRouteMatch } from 'react-router';
 import { injectIntl, FormattedDate, FormattedTime } from 'react-intl';
 import styled from 'styled-components';
 import { padding } from '@scality/core-ui/dist/style/theme';
-import { Breadcrumb, Table } from '@scality/core-ui';
-import { makeGetNodeFromUrl, makeGetVolumesFromUrl } from '../services/utils';
+import { Breadcrumb, Table, Loader } from '@scality/core-ui';
+import {
+  makeGetNodeFromUrl,
+  makeGetVolumesFromUrl,
+  useRefreshEffect,
+} from '../services/utils';
 import {
   SPARSE_LOOP_DEVICE,
   RAW_BLOCK_DEVICE,
@@ -14,9 +18,11 @@ import {
   STATUS_FAILED,
 } from '../constants';
 import {
-  fetchVolumesAction,
-  fetchPersistentVolumeAction,
   fetchStorageClassAction,
+  refreshVolumesAction,
+  stopRefreshVolumesAction,
+  refreshPersistentVolumesAction,
+  stopRefreshPersistentVolumesAction,
 } from '../ducks/app/volumes';
 import { fetchNodesAction } from '../ducks/app/nodes';
 import {
@@ -60,14 +66,23 @@ const InformationValueSection = styled.div`
   min-width: 500px;
 `;
 
+const LoaderContainer = styled(Loader)`
+  position: absolute;
+  padding: 40px 0 0 ${padding.larger};
+`;
+
 const VolumeInformation = props => {
   const { intl } = props;
   const dispatch = useDispatch();
   const match = useRouteMatch();
+
+  useRefreshEffect(refreshVolumesAction, stopRefreshVolumesAction);
+  useRefreshEffect(
+    refreshPersistentVolumesAction,
+    stopRefreshPersistentVolumesAction,
+  );
   useEffect(() => {
     dispatch(fetchNodesAction());
-    dispatch(fetchVolumesAction());
-    dispatch(fetchPersistentVolumeAction());
     dispatch(fetchStorageClassAction());
   }, [dispatch]);
 
@@ -76,6 +91,9 @@ const VolumeInformation = props => {
   const volumes = useSelector(state => makeGetVolumesFromUrl(state, props));
   const pVList = useSelector(state => state.app.volumes.pVList);
   const storageClasses = useSelector(state => state.app.volumes.storageClass);
+
+  const isLoading = useSelector(state => state.app.volumes.isLoading);
+
   const currentVolumeName = match.params.volumeName;
   const volume = volumes.find(
     volume => volume.metadata.name === currentVolumeName,
@@ -142,6 +160,8 @@ const VolumeInformation = props => {
           messages={[errorMessage]}
         />
       ) : null}
+
+      {isLoading && <LoaderContainer size="small" />}
 
       <VolumeInformationListContainer>
         <InformationSpan>
