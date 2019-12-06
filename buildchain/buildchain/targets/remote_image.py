@@ -32,6 +32,7 @@ class RemoteImage(image.ContainerImage):
         digest: str,
         destination: Path,
         save_as_tar: bool=False,
+        tar_only: bool=True,
         remote_name: Optional[str]=None,
         **kwargs: Any
     ):
@@ -44,6 +45,7 @@ class RemoteImage(image.ContainerImage):
             digest:         image digest
             destination:    save location for the image
             save_as_tar:    save the image as a tar archive?
+            tar_only:       save the image as a tar archive only?
             remote_name:    image name in the registry
 
         Keyword Arguments:
@@ -53,6 +55,7 @@ class RemoteImage(image.ContainerImage):
         self._digest = digest
         self._remote_name = remote_name or name
         self._use_tar = save_as_tar
+        self._tar_only = tar_only
         kwargs.setdefault('task_dep', []).append('check_for:skopeo')
         super().__init__(
             name=name, version=version,
@@ -80,7 +83,7 @@ class RemoteImage(image.ContainerImage):
     @property
     def filepath(self) -> Path:
         """Path to the file tracked on disk."""
-        if self._use_tar:
+        if self._use_tar and not self._tar_only:
             return self.dest_dir/'{img.name}-{img.version}{ext}'.format(
                 img=self, ext='.tar'
             )
@@ -96,37 +99,45 @@ class RemoteImage(image.ContainerImage):
             'uptodate': [True],
         })
 
-        if self._use_tar:
-            # Use Docker to pull, tag, then save the image
-            task['actions'] = [
-                (
-                    docker_command.docker_pull,
-                    [
-                        self.repository,
-                        self._remote_name,
-                        self.version,
-                        self.digest,
-                    ],
-                    {}
-                ),
-                (
-                    docker_command.docker_tag,
-                    [
-                        '{img.repository}/{img.name}'.format(img=self),
-                        self.remote_fullname,
-                        self.version,
-                    ],
-                    {}
-                ),
-                (docker_command.docker_save, [self.fullname, self.filepath], {})
-            ]
+        # Use Docker to pull, tag, then save the image
+        tar_actions = [
+            (
+                docker_command.docker_pull,
+                [
+                    self.repository,
+                    self._remote_name,
+                    self.version,
+                    self.digest,
+                ],
+                {}
+            ),
+            (
+                docker_command.docker_tag,
+                [
+                    '{img.repository}/{img.name}'.format(img=self),
+                    self.remote_fullname,
+                    self.version,
+                ],
+                {}
+            ),
+            (docker_command.docker_save, [self.fullname, self.filepath], {})
+        ]
+
+        # Use Skopeo to directly copy the remote image into a directory
+        # of image layers
+        copy_actions = [
+            self.mkdirs,
+            self._skopeo_copy(),
+        ]
+
+        if self._use_tar and self._tar_only:
+            task['actions'] = tar_actions
         else:
-            # Use Skopeo to directly copy the remote image into a directory
-            # of image layers
-            task.update({
-                'actions': [self.mkdirs, self._skopeo_copy()],
-                'clean':   [self.clean],
-            })
+            if self._use_tar:
+                task['actions'] = tar_actions + copy_actions
+            else:
+                task['actions'] = copy_actions
+            task['clean'] = [self.clean]
 
         return task
 
